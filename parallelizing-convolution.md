@@ -109,6 +109,8 @@ warp access adjacent memory locations.
 
 <img src="./resources/coalesced-access.png" width="600">
 
+Source: [NVIDIA CUDA C++ Best Practices](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#coalesced-access-to-global-memory)
+
 With coalesced accesses, we move closer to maximizing global memory bandwidth,
 as we make maximal use of data returned in DRAM bursts.
 

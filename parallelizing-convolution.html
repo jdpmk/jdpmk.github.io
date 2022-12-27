@@ -132,6 +132,9 @@ parallel computing, such as deep learning.</p>
         <p>Memory coalescing refers to an access pattern in which
         several threads of a warp access adjacent memory locations.</p>
         <p><img src="./resources/coalesced-access.png" width="600"></p>
+        <p>Source: <a
+        href="https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#coalesced-access-to-global-memory">NVIDIA
+        CUDA C++ Best Practices</a></p>
         <p>With coalesced accesses, we move closer to maximizing global
         memory bandwidth, as we make maximal use of data returned in
         DRAM bursts.</p>
