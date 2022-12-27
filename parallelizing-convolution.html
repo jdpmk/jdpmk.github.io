@@ -128,6 +128,13 @@ parallel computing, such as deep learning.</p>
         constant memory run much faster than accesses to global memory.
         An example usage of this optimization is loading a convolution
         mask into constant memory.</p>
+        <h3 id="memory-coalescing">Memory coalescing</h3>
+        <p>Memory coalescing refers to an access pattern in which
+        several threads of a warp access adjacent memory locations.</p>
+        <p><img src="./resources/coalesced-access.png" width="600"></p>
+        <p>With coalesced accesses, we move closer to maximizing global
+        memory bandwidth, as we make maximal use of data returned in
+        DRAM bursts.</p>
         <h2 id="convolution">Convolution</h2>
         <p>A convolution layer of a convoluational neural network
         performs an element-wise dot product between the input and mask,

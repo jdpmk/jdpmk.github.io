@@ -102,6 +102,16 @@ shared memory, accesses to constant memory run much faster than accesses to
 global memory. An example usage of this optimization is loading a convolution
 mask into constant memory.
 
+### Memory coalescing
+
+Memory coalescing refers to an access pattern in which several threads of a
+warp access adjacent memory locations.
+
+<img src="./resources/coalesced-access.png" width="600">
+
+With coalesced accesses, we move closer to maximizing global memory bandwidth,
+as we make maximal use of data returned in DRAM bursts.
+
 ## Convolution
 
 A convolution layer of a convoluational neural network performs an element-wise
