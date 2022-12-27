@@ -1,0 +1,162 @@
+<!doctype html>
+<html>
+  <head>
+    <title>A Parallelized, CUDA-Accelerated, LeNet Convolution
+Layer - joydeep.dev</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oxygen+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" type="text/css">
+    <!-- For MathJax -->
+              <script
+              src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+              type="text/javascript"></script>
+      </head>
+  <body>
+        <div class="nav">
+      <li class="name"><a href="./index.html">Joydeep Mukherjee</a></li>
+      <li><a href="./index.html">Home</a></li>
+      <li><a href="./projects.html">Projects</a></li>
+    </div>
+        <header id="title-block-header">
+      <h1 class="title">A Parallelized, CUDA-Accelerated, LeNet
+Convolution Layer</h1>
+                  <p class="author">Joydeep Mukherjee</p>
+                  <p class="date">December 27, 2022</p>
+                  <p class="abstract">In this article, I describe the
+benefits of accelerating parallel computation workloads with GPUs using
+the NVIDIA CUDA API and how it can be applied to popular applications of
+parallel computing, such as deep learning.</p>
+          </header>
+        <p><strong>Disclaimer</strong>: The concepts and project
+        discussed in this article are a part of the course offering of
+        <a href="https://ece.illinois.edu/academics/courses/ece408">ECE
+        408 / CS 483</a> at the University of Illinois Urbana-Champaign.
+        To maintain academic integrity, the code snippets below come
+        from external sources (which are cited) and are not my own
+        personal work for the course.</p>
+        <h2 id="why-gpus">Why GPUs?</h2>
+        <p>Many applications of parallel computing, such as scientific
+        computing, machine learning, and deep learning require a large
+        amount of numeric computation. GPUs are particularly well-suited
+        for these applications due to their ability to high-throughput
+        work, when compared to CPUs.</p>
+        <p><a
+        href="https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compute-capabilities">Modern
+        GPU architectures</a> support computation over thousands of
+        threads, which are organized into blocks. Blocks are organized
+        into grids. Within each block, threads execute instructions in
+        groups called warps.</p>
+        <p>Fortunately, many popular computational patterns, such as <a
+        href="https://en.wikipedia.org/wiki/Vector_(mathematics_and_physics)">vector
+        mathematics</a>, <a
+        href="https://en.wikipedia.org/wiki/Matrix_multiplication">matrix
+        multiplication</a>, <a
+        href="https://en.wikipedia.org/wiki/Convolution#Discrete_convolution">discrete
+        convolution</a>, <a
+        href="https://en.wikipedia.org/wiki/Prefix_sum">scanning</a>,
+        and <a
+        href="https://en.wikipedia.org/wiki/Fold_(higher-order_function)">reduction</a>
+        map nicely into this three-dimensional grid-like pattern.</p>
+        <h3 id="a-simple-example-vector-addition">A Simple Example:
+        Vector Addition</h3>
+        <p>A very simple example of parallelizing computation is vector
+        addition. Let’s say we have two vectors: <span
+        class="math inline">\(a, b \in \mathbb{R}^n\)</span>. We want to
+        compute <span class="math inline">\(c_i = a_i + b_i\)</span>.
+        The sequential CPU code in C++ may look something like this:</p>
+        <div class="sourceCode" id="cb1"><pre
+        class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Source: https://www.olcf.ornl.gov/tutorials/cpu-vector-addition/</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Sum component wise and save result into vector c</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> n<span class="op">;</span> i<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    c<span class="op">[</span>i<span class="op">]</span> <span class="op">=</span> a<span class="op">[</span>i<span class="op">]</span> <span class="op">+</span> b<span class="op">[</span>i<span class="op">];</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <p>We can recognize that every output element of <span
+        class="math inline">\(c\)</span> can be calculated independent
+        of every other output element. We can assign one output element
+        of <span class="math inline">\(c\)</span> to one GPU thread.
+        Each thread determines which element of <span
+        class="math inline">\(c\)</span> it computes based on its block
+        and thread index (which block it is a part of and its position
+        in that block). We must also be careful to avoid reading and
+        writing out of the bounds of the input and output arrays.</p>
+        <div class="sourceCode" id="cb2"><pre
+        class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Source: https://www.olcf.ornl.gov/tutorials/cuda-vector-addition/</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">// CUDA kernel. Each thread takes care of one element of c</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>__global__ <span class="dt">void</span> vecAdd<span class="op">(</span><span class="dt">double</span> <span class="op">*</span>a<span class="op">,</span> <span class="dt">double</span> <span class="op">*</span>b<span class="op">,</span> <span class="dt">double</span> <span class="op">*</span>c<span class="op">,</span> <span class="dt">int</span> n<span class="op">)</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Get our global thread ID</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> id <span class="op">=</span> blockIdx<span class="op">.</span>x <span class="op">*</span> blockDim<span class="op">.</span>x <span class="op">+</span> threadIdx<span class="op">.</span>x<span class="op">;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Make sure we do not go out of bounds</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>id <span class="op">&lt;</span> n<span class="op">)</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>        c<span class="op">[</span>id<span class="op">]</span> <span class="op">=</span> a<span class="op">[</span>id<span class="op">]</span> <span class="op">+</span> b<span class="op">[</span>id<span class="op">];</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <h2 id="memory-hierarchy-and-optimizations">Memory Hierarchy and
+        Optimizations</h2>
+        <p><img src="./resources/Nvidia-GPU-memory-structure.png" width="600"></p>
+        <p>Source: <a
+        href="https://www.researchgate.net/publication/346228460_Efficient_Parallel_Implementations_of_LWE-Based_Post-Quantum_Cryptosystems_on_Graphics_Processing_Units">Efficient
+        Parallel Implementations of LWE-Based Post-Quantum Cryptosystems
+        on Graphics Processing Units</a> by SangWoo An and Seog Chung
+        Seo is licensed under <a
+        href="https://creativecommons.org/licenses/by/4.0/">CC BY
+        4.0</a></p>
+        <p>The memory hierarchy of NVIDIA GPUs presents opportunities to
+        optimize the efficiency of memory accesses in CUDA kernels.</p>
+        <h3 id="global-memory">Global memory</h3>
+        <p>Global memory is the primary memory space of the GPU. Calls
+        to CUDA API functions like <code>cudaMalloc</code>,
+        <code>cudaMemset</code>, and <code>cudaMemcpy</code> can be used
+        to interact with global memory to allocate, initialize, and
+        transfer data between the device (GPU) and host (CPU).</p>
+        <h3 id="shared-memory">Shared memory</h3>
+        <p>Shared memory is allocated per-block and shared among threads
+        of the block. A potential optimization using shared memory is to
+        load tiles of frequently reused data into shared memory. This
+        may require barrier synchronization using
+        <code>__syncthreads()</code> which reduces parallelism but is
+        needed to satisfy dependencies. Rather than fetching data from
+        global memory, which is a slow process taking many cycles,
+        threads can quickly read data loaded into the shared memory
+        tile. An example usage of this optimization is tiled, shared
+        memory matrix multiplication.</p>
+        <h3 id="constant-memory">Constant memory</h3>
+        <p>Constant memory is an area of memory which serves essentially
+        as a read-only cache. Data can be copied to the device’s
+        constant memory and similar to shared memory, accesses to
+        constant memory run much faster than accesses to global memory.
+        An example usage of this optimization is loading a convolution
+        mask into constant memory.</p>
+        <h2 id="convolution">Convolution</h2>
+        <p>A convolution layer of a convoluational neural network
+        performs an element-wise dot product between the input and mask,
+        which “slides” across the input, to produce the output. It can
+        be used in applications such as image processing to perform
+        blurring, sharpening, or edge detection.</p>
+        <p><img src="./resources/2D_Convolution_Animation.gif" width="600"></p>
+        <p>Source: <a
+        href="https://en.wikipedia.org/wiki/File:2D_Convolution_Animation.gif">2D
+        Convolution Animation</a> by Michael Plotke is licensed under <a
+        href="CC%20BY-SA%203.0">CC BY-SA 3.0</a></p>
+        <h2 id="parallelized-lenet-convolution-layer">Parallelized LeNet
+        Convolution Layer</h2>
+        <p>The parallelized convolution layer runs in a <a
+        href="https://en.wikipedia.org/wiki/LeNet">LeNet</a>-like neural
+        network architecture. To perform inference with a convolutional
+        layer, we perform a parallel convolution to compute every output
+        element for each image per batch, for all output feature maps.
+        Images may also have several channels, for example RGB values,
+        over which the convolution is computed.</p>
+        <h3 id="performance">Performance</h3>
+        <p>The baseline sequential CPU code runs inference of a batch of
+        10,000 images in roughly 95s. The baseline parallelized GPU code
+        runs the same batch in roughly 90ms for a 99.9% speed
+        improvement. Further specialized optimizations reduce the
+        runtime to roughly 69ms from the baseline parallel
+        implementation.</p>
+        <footer class="footer">
+      <p>© 2021-2022. Joydeep Mukherjee</p>
+    </footer>
+  </body>
+</html>
