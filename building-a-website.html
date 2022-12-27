@@ -1,0 +1,180 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Building a Website with Pandoc, Markdown, and
+Make - joydeep.dev</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oxygen+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" type="text/css">
+    <!-- For MathJax -->
+              <script
+              src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+              type="text/javascript"></script>
+      </head>
+  <body>
+        <div class="nav">
+      <li class="name"><a href="./index.html">Joydeep Mukherjee</a></li>
+      <li><a href="./index.html">Home</a></li>
+      <li><a href="./projects.html">Projects</a></li>
+    </div>
+        <header id="title-block-header">
+      <h1 class="title">Building a Website with Pandoc, Markdown, and
+Make</h1>
+                  <p class="author">Joydeep Mukherjee</p>
+                  <p class="date">May 13, 2021 (updated May 5, 2022)</p>
+                  <p class="abstract">In this article, I describe a
+powerful approach to developing a personal website and blogging
+platform. I will introduce the specific tools I used, my reasons for
+choosing them, and my approach to designing a deployment system that is
+simple, fast, and highly customizable.</p>
+          </header>
+        <h2 id="requirements">Requirements</h2>
+        <p>I had a few requirements when designing my website:</p>
+        <ul>
+        <li>the ability to add inline <span
+        class="math inline">\(\LaTeX\)</span> and code snippets</li>
+        <li>simple, intuitive, and minimal design</li>
+        <li>fast build and deployment system</li>
+        </ul>
+        <p>Let’s address these one by one.</p>
+        <h3 id="inline-latex-and-code-snippets">Inline <span
+        class="math inline">\(\LaTeX\)</span> and Code Snippets</h3>
+        <p>Adding inline <span class="math inline">\(\LaTeX\)</span> and
+        code snippets would be pretty difficult in raw HTML and CSS.
+        This is where <a href="https://pandoc.org/"
+        target="_blank">Pandoc</a> comes in.</p>
+        <p>With Pandoc, I can write in Markdown and export to HTML,
+        specifying a custom template, stylesheet, and a bunch of useful
+        extensions. Pandoc is extremely powerful and can convert between
+        dozens of file formats, so I would encourage you to read the
+        documentation to see what is possible.</p>
+        <h3 id="build-system">Build System</h3>
+        <p>To motivate the need for a specialized build system, let’s
+        recall that we are using Pandoc to generate HTML files from
+        Markdown files. The command to do so is:</p>
+        <div class="sourceCode" id="cb1"><pre
+        class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> pandoc ... <span class="at">-o</span> file.html file.md</span></code></pre></div>
+        <p>It would be a slow and tedious process to run such a command
+        for every HTML file in my website, especially as the number of
+        files increase.</p>
+        <p>This is where <a href="https://www.gnu.org/software/make/"
+        target="_blank">Make</a> comes into play. This is a tool which
+        builds files based on rules defined in a <code>Makefile</code>.
+        It is especially powerful since it will not rebuild files which
+        have not changed. It can generally be used by running:</p>
+        <div class="sourceCode" id="cb2"><pre
+        class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> make</span></code></pre></div>
+        <h3 id="hosting-and-deployment">Hosting and Deployment</h3>
+        <p>GitHub offers a free static site hosting solution called <a
+        href="https://pages.github.com/" target="_blank">GitHub
+        Pages</a>. This allows you to host a static site with a Git
+        repository on your GitHub account. GitHub gives you a default
+        URL, but you can add a custom domain (as I have). There are
+        several other options for hosting available (i.e., a VPS), and
+        this isn’t the most crucial factor in the design of this
+        website, so use whatever you like.</p>
+        <h2 id="implementation">Implementation</h2>
+        <p>Let’s now cover the details of my implementation.</p>
+        <p>This is what my project structure looks like:</p>
+        <div class="sourceCode" id="cb3"><pre
+        class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> tree .</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">.</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> CNAME</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> Makefile</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> style.css</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> template.html</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> about.html</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> about.md</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> index.html</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> index.md</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> writing.html</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> writing.md</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> building-a-website.html</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="ex">└──</span> building-a-website.md</span></code></pre></div>
+        <p>I will briefly discuss each file.</p>
+        <h3 id="stylesheet-and-template">Stylesheet and Template</h3>
+        <p><code>template.html</code> is my custom HTML template for
+        Pandoc. You can view the source for the default HTML template
+        Pandoc uses with: <code>pandoc -D html</code>.</p>
+        <p><code>style.css</code> is my custom CSS stylesheet for Pandoc
+        (linked directly in <code>template.html</code>). Pandoc provides
+        a great template and stylesheet out of the box, if you don’t
+        want to set up your own.</p>
+        <h3 id="html-and-markdown-files">HTML and Markdown Files</h3>
+        <p>GitHub Pages looks for a file called <code>index.html</code>,
+        which it treats as the home page of the website.
+        <code>index.md</code> is its Markdown counterpart from which it
+        is generated.</p>
+        <p>The Pandoc template houses the navbar, footer, and
+        placeholders for metadata such as the title, author, and date of
+        a specific page. This makes formatting extremely convenient and
+        allows me to start writing the main content of a page
+        immediately - almost no setup required. The Markdown source code
+        for an article may look like this:</p>
+        <div class="sourceCode" id="cb4"><pre
+        class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> Building a Website with Pandoc, Markdown, and Make</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> Joydeep Mukherjee</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> May 13, 2021</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="an">abstract:</span><span class="co"> ...</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="fu">## The main content starts here</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>...</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>...</span></code></pre></div>
+        <h3 id="makefile">Makefile</h3>
+        <p>As mentioned before, Make will look for a file called
+        <code>Makefile</code> (or <code>makefile</code>) which contains
+        the rules to build the project. Here are the contents of my
+        <code>Makefile</code>:</p>
+        <div class="sourceCode" id="cb5"><pre
+        class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">PAGES</span><span class="ch">=$(</span><span class="kw">subst</span><span class="st"> .md</span><span class="kw">,</span><span class="st">.html</span><span class="kw">,</span><span class="ch">$(</span><span class="kw">shell</span><span class="st"> find . -name &quot;*.md&quot;</span><span class="ch">))</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="dt">OPTS</span><span class="ch">=</span><span class="st">-s -f markdown -t html --template=template.html --mathjax</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="dv">all:</span><span class="dt"> refresh</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="dv">refresh:</span><span class="dt"> </span><span class="ch">$(</span><span class="dt">PAGES</span><span class="ch">)</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="dv">%.html:</span><span class="dt"> %.md</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    pandoc <span class="ch">$(</span><span class="dt">OPTS</span><span class="ch">)</span> -o <span class="ch">$@</span> <span class="ch">$^</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="dv">clean:</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    rm -f <span class="ch">$(</span><span class="dt">PAGES</span><span class="ch">)</span></span></code></pre></div>
+        <p><code>PAGES</code> identifies all the HTML pages that must be
+        generated by Pandoc. To automate finding all these files, the
+        <code>find</code> command first finds all Markdown files and
+        then <code>subst</code> is used to replace the <code>.md</code>
+        extenstion with <code>.html</code>.</p>
+        <p><code>OPTS</code> identifies various options which are passed
+        to Pandoc, such as the <code>-s</code> flag which produces
+        standalone output rather than a fragment, <code>-f</code> and
+        <code>-t</code> which identify the input and output file
+        formats, <code>--template</code> which indicates the path to the
+        template, and <code>--mathjax</code> which enables <span
+        class="math inline">\(\LaTeX\)</span> rendering in the
+        output.</p>
+        <p>Most of the work happens in the <code>%.html</code> rule,
+        where the <code>pandoc</code> command is called with
+        <code>$(OPTS)</code> to generate each HTML file:</p>
+        <ul>
+        <li><code>$^</code> identifies the input Markdown file. In Make,
+        <code>$^</code> refers to whatever is after the colon in the
+        rule (i.e., the dependency)</li>
+        <li><code>-o $@</code> identifies the output HTML file. In Make,
+        <code>$@</code> refers to whatever is before the colon in the
+        rule (i.e., what is being built)</li>
+        </ul>
+        <p>A <code>clean</code> rule is also provided, which clears all
+        generated HTML files.</p>
+        <h2 id="deployment">Deployment</h2>
+        <p>In order to build and deploy changes to my website, I run the
+        following commands:</p>
+        <div class="sourceCode" id="cb6"><pre
+        class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> make</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> git push origin master</span></code></pre></div>
+        <footer class="footer">
+      <p>© 2021-2022. Joydeep Mukherjee</p>
+    </footer>
+  </body>
+</html>

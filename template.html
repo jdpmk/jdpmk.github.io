@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+  <head>
+    <title>$title$ - joydeep.dev</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oxygen+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" type="text/css">
+    <!-- For MathJax -->
+    $for(header-includes)$
+    $header-includes$
+    $endfor$
+    $if(math)$
+      $math$
+    $endif$
+  </head>
+  <body>
+    $for(include-before)$
+      $include-before$
+    $endfor$
+    <div class="nav">
+      <li class="name"><a href="./index.html">Joydeep Mukherjee</a></li>
+      <li><a href="./index.html">Home</a></li>
+      <li><a href="./projects.html">Projects</a></li>
+    </div>
+    $if(hide-preamble)$
+    <!-- hack to retain same top margin with and without title -->
+    <header id="title-block-header">
+      <h1 class="title"></h1>
+    </header>
+    $else$
+    <header id="title-block-header">
+      <h1 class="title">$title$</h1>
+      $if(subtitle)$
+      <p class="subtitle">$subtitle$</p>
+      $endif$
+      $for(author)$
+      <p class="author">$author$</p>
+      $endfor$
+      $if(date)$
+      <p class="date">$date$</p>
+      $endif$
+      $if(abstract)$
+      <p class="abstract">$abstract$</p>
+      $endif$
+    </header>
+    $endif$
+    $body$
+    $for(include-after)$
+      $include-after$
+    $endfor$
+    <footer class="footer">
+      <p>© 2021-2022. Joydeep Mukherjee</p>
+    </footer>
+  </body>
+</html>

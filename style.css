@@ -1,0 +1,46 @@
+body {
+    font-size: 20px;
+    font-family: Helvetica;
+
+    margin-left: 300px;
+    max-width: 40%;
+}
+
+.nav {
+    list-style-type: none;
+    left: 50px;
+    position: fixed;
+    text-align: right;
+}
+
+.nav a {
+    text-decoration: none;
+}
+
+.name {
+    font-weight: bold;
+}
+
+h1, h2 {
+    margin-top: 50px;
+}
+
+.abstract {
+    font-style: italic;
+}
+
+.footer {
+    margin-top: 50px;
+}
+
+a:link, a:hover, a:active, a:visited {
+    color: black;
+}
+
+::selection {
+    background: #ffffcc;
+}
+
+::-moz-selection {
+    background: #ffffcc;
+}
