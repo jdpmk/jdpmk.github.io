@@ -34,13 +34,13 @@ parallel computing, such as deep learning.</p>
         408 / CS 483</a> at the University of Illinois Urbana-Champaign.
         To maintain academic integrity, the code snippets below come
         from external sources (which are cited) and are not my own
-        personal work for the course.</p>
+        personal work for the course nor the project.</p>
         <h2 id="why-gpus">Why GPUs?</h2>
         <p>Many applications of parallel computing, such as scientific
         computing, machine learning, and deep learning require a large
         amount of numeric computation. GPUs are particularly well-suited
-        for these applications due to their ability to high-throughput
-        work, when compared to CPUs.</p>
+        for these applications due to their ability to do
+        high-throughput work, when compared to CPUs.</p>
         <p><a
         href="https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compute-capabilities">Modern
         GPU architectures</a> support computation over thousands of
@@ -68,10 +68,11 @@ parallel computing, such as deep learning.</p>
         <div class="sourceCode" id="cb1"><pre
         class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Source: https://www.olcf.ornl.gov/tutorials/cpu-vector-addition/</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Sum component wise and save result into vector c</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> n<span class="op">;</span> i<span class="op">++)</span> <span class="op">{</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    c<span class="op">[</span>i<span class="op">]</span> <span class="op">=</span> a<span class="op">[</span>i<span class="op">]</span> <span class="op">+</span> b<span class="op">[</span>i<span class="op">];</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-        <p>We can recognize that every output element of <span
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> n<span class="op">;</span> i<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    c<span class="op">[</span>i<span class="op">]</span> <span class="op">=</span> a<span class="op">[</span>i<span class="op">]</span> <span class="op">+</span> b<span class="op">[</span>i<span class="op">];</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <p>We recognize that every output element of <span
         class="math inline">\(c\)</span> can be calculated independent
         of every other output element. We can assign one output element
         of <span class="math inline">\(c\)</span> to one GPU thread.
@@ -83,8 +84,8 @@ parallel computing, such as deep learning.</p>
         <div class="sourceCode" id="cb2"><pre
         class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Source: https://www.olcf.ornl.gov/tutorials/cuda-vector-addition/</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">// CUDA kernel. Each thread takes care of one element of c</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>__global__ <span class="dt">void</span> vecAdd<span class="op">(</span><span class="dt">double</span> <span class="op">*</span>a<span class="op">,</span> <span class="dt">double</span> <span class="op">*</span>b<span class="op">,</span> <span class="dt">double</span> <span class="op">*</span>c<span class="op">,</span> <span class="dt">int</span> n<span class="op">)</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>__global__ <span class="dt">void</span> vecAdd<span class="op">(</span><span class="dt">double</span> <span class="op">*</span>a<span class="op">,</span> <span class="dt">double</span> <span class="op">*</span>b<span class="op">,</span> <span class="dt">double</span> <span class="op">*</span>c<span class="op">,</span> <span class="dt">int</span> n<span class="op">)</span> <span class="op">{</span></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Get our global thread ID</span></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> id <span class="op">=</span> blockIdx<span class="op">.</span>x <span class="op">*</span> blockDim<span class="op">.</span>x <span class="op">+</span> threadIdx<span class="op">.</span>x<span class="op">;</span></span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>

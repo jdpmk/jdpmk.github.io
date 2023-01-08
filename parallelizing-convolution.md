@@ -9,13 +9,13 @@ abstract: 'In this article, I describe the benefits of accelerating parallel com
 offering of [ECE 408 / CS 483](https://ece.illinois.edu/academics/courses/ece408) at the
 University of Illinois Urbana-Champaign. To maintain academic integrity, the code snippets
 below come from external sources (which are cited) and are not my own personal work for
-the course.
+the course nor the project.
 
 ## Why GPUs?
 
 Many applications of parallel computing, such as scientific computing, machine learning,
 and deep learning require a large amount of numeric computation. GPUs are particularly
-well-suited for these applications due to their ability to high-throughput work, when
+well-suited for these applications due to their ability to do high-throughput work, when
 compared to CPUs.
 
 [Modern GPU architectures](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compute-capabilities)
@@ -41,23 +41,24 @@ like this:
 ```cpp
 // Source: https://www.olcf.ornl.gov/tutorials/cpu-vector-addition/
 // Sum component wise and save result into vector c
+
 for (int i = 0; i < n; i++) {
     c[i] = a[i] + b[i];
 }
 ```
 
-We can recognize that every output element of $c$ can be calculated independent
-of every other output element. We can assign one output element of $c$ to one
-GPU thread. Each thread determines which element of $c$ it computes based on its
-block and thread index (which block it is a part of and its position in that block).
-We must also be careful to avoid reading and writing out of the bounds of the
-input and output arrays.
+We recognize that every output element of $c$ can be calculated independent of
+every other output element. We can assign one output element of $c$ to one GPU
+thread. Each thread determines which element of $c$ it computes based on its
+block and thread index (which block it is a part of and its position in that
+block).  We must also be careful to avoid reading and writing out of the bounds
+of the input and output arrays.
 
 ```cpp
 // Source: https://www.olcf.ornl.gov/tutorials/cuda-vector-addition/
 // CUDA kernel. Each thread takes care of one element of c
-__global__ void vecAdd(double *a, double *b, double *c, int n)
-{
+
+__global__ void vecAdd(double *a, double *b, double *c, int n) {
     // Get our global thread ID
     int id = blockIdx.x * blockDim.x + threadIdx.x;
 
