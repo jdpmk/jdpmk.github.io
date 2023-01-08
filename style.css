@@ -29,6 +29,17 @@ h1, h2 {
     font-style: italic;
 }
 
+div.sourceCode {
+    min-width: 100%;
+    max-width: max-content;
+    display: inline-flex;
+    border-top: 1px solid #000000;
+    border-left: 1px solid #000000;
+    border-bottom: 1px solid #000000;
+    border-right: 1px solid #000000;
+    padding: 20px;
+}
+
 .footer {
     margin-top: 50px;
 }
