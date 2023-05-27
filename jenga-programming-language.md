@@ -2,7 +2,7 @@
 title: 'Jenga: a stack-oriented, concatenative programming language'
 author: Joydeep Mukherjee
 date: May 26, 2023
-abstract: 'In this article, I describe Jenga, a stack-oriented, concatenative programming language I wrote several months ago as an exercise to explore a new (somewhat esoteric) programming paradigm and apply my recently-acquired knowledge of programming languages from [CS 421](https://courses.grainger.illinois.edu/cs421/fa2022/) at UIUC. I implemented an interpreter for the language in OCaml, using standard tools such as (ocaml)yacc and (ocaml)lex. References, source code, and example Jenga programs can be found in the [project repository on GitHub](https://github.com/jdpmk/jenga).'
+abstract: 'In this article, I describe Jenga, a stack-oriented, concatenative programming language I wrote several months ago as an exercise to explore a new (somewhat esoteric) programming paradigm and apply my recently-acquired knowledge of programming languages from [CS 421](https://courses.grainger.illinois.edu/cs421/fa2022/) at UIUC. I implemented an interpreter for the language in OCaml, using standard tools including (ocaml)yacc and (ocaml)lex. References, source code, and example Jenga programs can be found in the [project repository on GitHub](https://github.com/jdpmk/jenga).'
 ---
 
 ## Stack-oriented and concatenative programming
@@ -14,7 +14,7 @@ of the stack (usually the items at the top).
 
 One of the simplest examples of a stack-oriented language is a simple
 [Reverse Polish notation](https://en.wikipedia.org/wiki/Reverse_Polish_notation)
-calculator:
+calculator.
 
 ```
 "1 2 + 3 * 3 /" evaluates to "3"
@@ -118,10 +118,11 @@ While loops work similarly:
 end drop
 ```
 
-There are more nuances to the semantics which are enforced during type-checking.
-For example, loops and conditionals should neither create nor delete data from
-the stack. Intrinsic operators expect arguments of given types (for example,
-adding two strings is not well-defined in Jenga; integers are expected).
+There are more nuances to the semantics which are enforced during type-checking
+(see below). For example, loops and conditionals should neither create nor
+delete data from the stack. Intrinsic operators expect arguments of given types
+(for example, adding two strings is not well-defined in Jenga; integers are
+expected).
 
 ## Memory model
 
@@ -132,7 +133,7 @@ is just the stack which the program is operating on!
 Static memory is allocated as an integer, string, or array with fixed size.
 Each piece of memory is given an identifier which can be read from or written
 to. I find the syntax of "piping" the value read from a static memory
-identifier into a function (such as `println`) rather elegant:
+identifier into a function (such as `println`) rather elegant.
 
 ```c
 alloc x as int 0 end
@@ -145,7 +146,7 @@ alloc x as int 0 end
 x -> println
 ```
 
-## Type-checking and evaluation
+## Type-checking
 
 The type system for Jenga is rather simple. The language is statically-typed
 so the expected type at each step of execution can be inferred from the data
@@ -179,8 +180,66 @@ type-check nested conditional statements and loops. Note that loops are
 type-checked statically in a single pass, therefore type-checking is
 guaranteed to terminate, even if the program does not terminate when executed.
 
+For a more complicated example, let's consider the following program, which
+computes the sequence described by the
+[Collatz conjecture](https://en.wikipedia.org/wiki/Collatz_conjecture).
+
+```c
+# An example which *tries to* implement the recurrence described
+# by the Collatz conjecture
+#
+# Expected output:
+# 42
+# 21
+# 64
+# 32
+# 16
+# 8
+# 4
+# 2
+# 1
+
+42
+while dup 1 != do
+    dup println
+        if dup 2 % 0 = then
+            2 /
+        else
+            3 * + 1
+        end
+    end
+println
+```
+
+The type-checker fails, producing the following error message.
+
+```txt
+Fatal error: exception Jenga.Exceptions.TypeError("cannot
+execute `+`. expected two items of type `int` on the stack
+but found one item or none")
+```
+
+It seems like `+` is executing without enough integers on the stack. Upon
+inspecting our call to `+`, we seem to have placed it out of order: the `+`
+should be placed after 1 on the stack, since `3 * x + 1` is equivalent to
+`3 x * 1 +` in postfix notation. Making this change fixes the error and the
+program runs as expected (see the corrected program at
+[collatz.jg](https://github.com/jdpmk/jenga/blob/master/examples/collatz.jg)).
+
+This is a great example of how an effective type-checker greatly enhances the
+development experience and helps catch major issues before they occur at
+runtime.
+
+Jenga's type-checker can identify mismatched arguments (in both the number of
+arguments and type of arguments), unexpected types being introduced (for
+example, in the body of a conditional or loop), and unhandled data on the stack
+at the end of the program.
+
+## Evaluation
+
 As suggested above, evaluation of a Jenga program occurs in a similar manner
-but with a "value stack" instead. For example, for the following program,
+to type-checking but with a "value stack" instead. For example, for the
+following program,
 
 ```c
 1 2 + println
@@ -218,7 +277,7 @@ Here is an example implementation of
 [Rule 110](https://en.wikipedia.org/wiki/Rule_110), a simpler Turing complete
 cellular automaton (original source code also found in the examples directory
 of the project repository, in
-[rule110.jg](https://github.com/jdpmk/jenga/blob/master/examples/rule110.jg)):
+[rule110.jg](https://github.com/jdpmk/jenga/blob/master/examples/rule110.jg)).
 
 ```c
 # An implementation of the Rule 110 cellular automaton

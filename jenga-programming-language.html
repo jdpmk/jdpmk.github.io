@@ -1,0 +1,518 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Jenga: a stack-oriented, concatenative programming
+language - joydeep.dev</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oxygen+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" type="text/css">
+    <!-- For MathJax -->
+          </head>
+  <body>
+        <div class="nav">
+      <li class="name"><a href="./index.html">Joydeep Mukherjee</a></li>
+      <li><a href="./index.html">Home</a></li>
+      <li><a href="./projects.html">Projects</a></li>
+    </div>
+        <header id="title-block-header">
+      <h1 class="title">Jenga: a stack-oriented, concatenative
+programming language</h1>
+                  <p class="author">Joydeep Mukherjee</p>
+                  <p class="date">May 26, 2023</p>
+                  <p class="abstract">In this article, I describe Jenga,
+a stack-oriented, concatenative programming language I wrote several
+months ago as an exercise to explore a new (somewhat esoteric)
+programming paradigm and apply my recently-acquired knowledge of
+programming languages from <a
+href="https://courses.grainger.illinois.edu/cs421/fa2022/">CS 421</a> at
+UIUC. I implemented an interpreter for the language in OCaml, using
+standard tools including (ocaml)yacc and (ocaml)lex. References, source
+code, and example Jenga programs can be found in the <a
+href="https://github.com/jdpmk/jenga">project repository on
+GitHub</a>.</p>
+          </header>
+        <h2
+        id="stack-oriented-and-concatenative-programming">Stack-oriented
+        and concatenative programming</h2>
+        <p><a
+        href="https://en.wikipedia.org/wiki/Stack-oriented_programming">Stack-oriented
+        programming languages</a> execute in the frame of a single stack
+        which contains both data and commands. Data items are pushed
+        onto the top of the stack. Commands manipulate the items of the
+        stack (usually the items at the top).</p>
+        <p>One of the simplest examples of a stack-oriented language is
+        a simple <a
+        href="https://en.wikipedia.org/wiki/Reverse_Polish_notation">Reverse
+        Polish notation</a> calculator.</p>
+        <pre><code>&quot;1 2 + 3 * 3 /&quot; evaluates to &quot;3&quot;
+
+        +           *       /
+    2   2       3   3       3
+1   1   1   3   3   3   9   9   3
+
+================================&gt;
+
+    state of the stack during
+           execution</code></pre>
+        <p>In this example, the semantics of the language are relatively
+        straightforward: integer literals are data items pushed onto the
+        stack, while operators like <code>+</code>, <code>-</code>,
+        <code>*</code>, and <code>/</code> are arithmetic operators
+        which operate on the top two items of the stack. Generally,
+        these operators can be any <a
+        href="https://en.wikipedia.org/wiki/Arity">n-ary</a> relation or
+        function.</p>
+        <p>Even more broadly, this represents the style of <a
+        href="https://en.wikipedia.org/wiki/Concatenative_programming_language">concatenative
+        programming</a>. The sequential application of functions can
+        elegantly express the notion of function composition. For
+        example, the following statement in C,</p>
+        <div class="sourceCode" id="cb2"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>foo<span class="op">(</span>bar<span class="op">(</span>baz<span class="op">(</span>x<span class="op">)));</span></span></code></pre></div>
+        <p>can be equivalently written in Jenga, as,</p>
+        <div class="sourceCode" id="cb3"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>x baz bar foo</span></code></pre></div>
+        <h2 id="language-intrinsics">Language intrinsics</h2>
+        <p>The core of the language is rather simple, supporting basic
+        constructs such as:</p>
+        <ul>
+        <li>control flow (conditionals and loops)</li>
+        <li>arithmetic, logical, and comparison operators</li>
+        <li>minimal I/O (right now, it’s really just O)</li>
+        <li>a collection of stack manipulation operators (inspired by <a
+        href="https://en.wikipedia.org/wiki/Forth_(programming_language)">Forth</a>)</li>
+        <li>static memory</li>
+        </ul>
+        <p>A complete list can be found in the <a
+        href="https://github.com/jdpmk/jenga/blob/master/SPECIFICATIONS.md">language
+        specifications</a> on GitHub.</p>
+        <h2 id="language-semantics">Language semantics</h2>
+        <p>Now, we’ll discuss language semantics, motivated by snippets
+        of Jenga code:</p>
+        <p>Data can be pushed onto the stack as a literal:</p>
+        <div class="sourceCode" id="cb4"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span>  # now the integer <span class="st">&quot;1&quot;</span> is on the stack</span></code></pre></div>
+        <p>The programmer should ensure that the stack is empty at the
+        termination of the program. Otherwise, type-checking fails.</p>
+        <p>Functions and operators can be applied on data:</p>
+        <div class="sourceCode" id="cb5"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="dv">2</span> <span class="op">+</span> println  # prints <span class="st">&quot;3&quot;</span></span></code></pre></div>
+        <p>Note that in the above example, <code>println</code>
+        “consumes” the value on the stack, 3, so at the termination of
+        the program, the stack is empty.</p>
+        <p>Programs which apply functions or operators to less data than
+        expected will fail during type-checking:</p>
+        <div class="sourceCode" id="cb6"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>println  # type<span class="op">-</span>checking fails<span class="op">,</span> expected a value but found none</span></code></pre></div>
+        <p>Conditionals work by executing the condition of the
+        statement, checking the top of the stack for a boolean value,
+        and taking the corresponding branch:</p>
+        <div class="sourceCode" id="cb7"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="er"># prints &quot;odd&quot;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="dv">2023</span> <span class="dv">2</span> <span class="op">%</span> <span class="dv">0</span> <span class="op">=</span> then</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;even&quot;</span> println</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;odd&quot;</span> println</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>end</span></code></pre></div>
+        <p>While loops work similarly:</p>
+        <div class="sourceCode" id="cb8"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="er"># prints &quot;0 1 2 3 4&quot; (newline separated)</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="dv">0</span> <span class="cf">while</span> dup <span class="dv">5</span> <span class="op">!=</span> <span class="cf">do</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    dup println</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1</span> <span class="op">+</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>end drop</span></code></pre></div>
+        <p>There are more nuances to the semantics which are enforced
+        during type-checking (see below). For example, loops and
+        conditionals should neither create nor delete data from the
+        stack. Intrinsic operators expect arguments of given types (for
+        example, adding two strings is not well-defined in Jenga;
+        integers are expected).</p>
+        <h2 id="memory-model">Memory model</h2>
+        <p>Static memory was introduced as a way to write more useful
+        programs that can do significant computation. Without this, the
+        working memory of a Jenga program is just the stack which the
+        program is operating on!</p>
+        <p>Static memory is allocated as an integer, string, or array
+        with fixed size. Each piece of memory is given an identifier
+        which can be read from or written to. I find the syntax of
+        “piping” the value read from a static memory identifier into a
+        function (such as <code>println</code>) rather elegant.</p>
+        <div class="sourceCode" id="cb9"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>alloc x as <span class="dt">int</span> <span class="dv">0</span> end</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="er"># ...some computation on x...</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="er"># place the value of `x` onto the stack, then print it,</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="er"># or equivalently, pass the value of `x` to `println`</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>x <span class="op">-&gt;</span> println</span></code></pre></div>
+        <h2 id="type-checking">Type-checking</h2>
+        <p>The type system for Jenga is rather simple. The language is
+        statically-typed so the expected type at each step of execution
+        can be inferred from the data and functions placed on the stack.
+        Note that there are no type annotations, apart from those placed
+        in static memory declarations: types for literal integers and
+        strings are inferred.</p>
+        <p>To type-check Jenga, we simply execute the program but
+        maintain a “type stack” rather than a “value stack”. For
+        example, for the following program,</p>
+        <div class="sourceCode" id="cb10"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="dv">2</span> <span class="op">+</span> println</span></code></pre></div>
+        <p>our type stack looks like:</p>
+        <pre><code>      +
+int   int
+int   int   int   ___
+
+====================&gt;
+
+ state of the stack
+during type-checking</code></pre>
+        <p>Conditional statements and loops are type-checked by
+        recursively type-checking the body of the construct. Recursively
+        applying this approach allows us to type-check nested
+        conditional statements and loops. Note that loops are
+        type-checked statically in a single pass, therefore
+        type-checking is guaranteed to terminate, even if the program
+        does not terminate when executed.</p>
+        <p>For a more complicated example, let’s consider the following
+        program, which computes the sequence described by the <a
+        href="https://en.wikipedia.org/wiki/Collatz_conjecture">Collatz
+        conjecture</a>.</p>
+        <div class="sourceCode" id="cb12"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="er"># An example which *tries to* implement the recurrence described</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="er"># by the Collatz conjecture</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="er">#</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="er"># Expected output:</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="pp"># 42</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="pp"># 21</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="pp"># 64</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="pp"># 32</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="pp"># 16</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="pp"># 8</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="pp"># 4</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="pp"># 2</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="pp"># 1</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="dv">42</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> dup <span class="dv">1</span> <span class="op">!=</span> <span class="cf">do</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    dup println</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> dup <span class="dv">2</span> <span class="op">%</span> <span class="dv">0</span> <span class="op">=</span> then</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>            <span class="dv">2</span> <span class="op">/</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>            <span class="dv">3</span> <span class="op">*</span> <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>        end</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>println</span></code></pre></div>
+        <p>The type-checker fails, producing the following error
+        message.</p>
+        <div class="sourceCode" id="cb13"><pre
+        class="sourceCode txt"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>Fatal error: exception Jenga.Exceptions.TypeError(&quot;cannot</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>execute `+`. expected two items of type `int` on the stack</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>but found one item or none&quot;)</span></code></pre></div>
+        <p>It seems like <code>+</code> is executing without enough
+        integers on the stack. Upon inspecting our call to
+        <code>+</code>, we seem to have placed it out of order: the
+        <code>+</code> should be placed after 1 on the stack, since
+        <code>3 * x + 1</code> is equivalent to <code>3 x * 1 +</code>
+        in postfix notation. Making this change fixes the error and the
+        program runs as expected (see the corrected program at <a
+        href="https://github.com/jdpmk/jenga/blob/master/examples/collatz.jg">collatz.jg</a>).</p>
+        <p>This is a great example of how an effective type-checker
+        greatly enhances the development experience and helps catch
+        major issues before they occur at runtime.</p>
+        <p>Jenga’s type-checker can identify mismatched arguments (in
+        both the number of arguments and type of arguments), unexpected
+        types being introduced (for example, in the body of a
+        conditional or loop), and unhandled data on the stack at the end
+        of the program.</p>
+        <h2 id="evaluation">Evaluation</h2>
+        <p>As suggested above, evaluation of a Jenga program occurs in a
+        similar manner to type-checking but with a “value stack”
+        instead. For example, for the following program,</p>
+        <div class="sourceCode" id="cb14"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="dv">2</span> <span class="op">+</span> println</span></code></pre></div>
+        <p>our value stack looks like:</p>
+        <pre><code>    +
+2   2
+1   1   3   ___
+
+====================&gt;
+
+ state of the stack
+ during execution</code></pre>
+        <p>For brevity, the formal semantics of type-checking and
+        evaluation for all constructs in the language have been omitted
+        but the implementation can be found in <a
+        href="https://github.com/jdpmk/jenga/blob/master/lib/types.ml">types.ml</a>
+        and <a
+        href="https://github.com/jdpmk/jenga/blob/master/lib/evaluate.ml">evaluate.ml</a>,
+        respectively.</p>
+        <h2
+        id="turing-completeness-and-computability">Turing-completeness
+        and computability</h2>
+        <p>We can say that a system which can simulates a Turing machine
+        is Turing complete. Therefore, if our language can simulate a
+        Turing complete cellular automaton, like <a
+        href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Conway’s
+        Game of Life</a>, then it is also Turing complete!</p>
+        <p>Here is an example implementation of <a
+        href="https://en.wikipedia.org/wiki/Rule_110">Rule 110</a>, a
+        simpler Turing complete cellular automaton (original source code
+        also found in the examples directory of the project repository,
+        in <a
+        href="https://github.com/jdpmk/jenga/blob/master/examples/rule110.jg">rule110.jg</a>).</p>
+        <div class="sourceCode" id="cb16"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="er"># An implementation of the Rule 110 cellular automaton</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="er">#</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="er"># See:</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="er"># - https://en.wikipedia.org/wiki/Rule_110</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="er"># - https://mathworld.wolfram.com/Rule110.html</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>alloc ON  as string <span class="st">&quot;X&quot;</span> end</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>alloc OFF as string <span class="st">&quot;O&quot;</span> end</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>alloc n     as <span class="dt">int</span>        <span class="dv">61</span>  end</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>alloc state as string<span class="op">[</span><span class="dv">61</span><span class="op">]</span> <span class="st">&quot;O&quot;</span> end</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>alloc next  as string<span class="op">[</span><span class="dv">61</span><span class="op">]</span> <span class="st">&quot;O&quot;</span> end</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>alloc slice as string<span class="op">[</span><span class="dv">3</span><span class="op">]</span>  <span class="st">&quot;O&quot;</span> end</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>alloc iterations as <span class="dt">int</span> <span class="dv">40</span> end</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a><span class="er"># Set the middle element to ON</span></span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>state n <span class="op">-&gt;</span> <span class="dv">2</span> <span class="op">/</span> ON <span class="op">-&gt;</span> <span class="op">&lt;-</span></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a><span class="er"># Run the automaton for the given number of iterations</span></span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a><span class="dv">0</span> <span class="cf">while</span> dup iterations <span class="op">-&gt;</span> <span class="op">!=</span> <span class="cf">do</span></span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>    <span class="er"># Print the current state</span></span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>    <span class="dv">0</span> <span class="cf">while</span> dup n <span class="op">-&gt;</span> <span class="op">!=</span> <span class="cf">do</span></span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>        state over <span class="op">-&gt;</span> print</span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>        <span class="dv">1</span> <span class="op">+</span></span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>    end drop</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;&quot;</span> println</span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>    <span class="er"># Populate the next state</span></span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>    <span class="dv">0</span> <span class="cf">while</span> dup n <span class="op">-&gt;</span> <span class="op">!=</span> <span class="cf">do</span></span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>        <span class="er"># Indices to read from the current state</span></span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>        dup <span class="dv">1</span> <span class="op">-</span></span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>        dup <span class="dv">1</span> <span class="op">+</span></span>
+<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>        dup <span class="dv">1</span> <span class="op">+</span></span>
+<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a>        <span class="er"># Store a slice of three cells based on the current index</span></span>
+<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a>        <span class="er"># with bounds checking (0 &lt;= i &lt; n)</span></span>
+<span id="cb16-38"><a href="#cb16-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a>        <span class="er"># slice[i - 1]...</span></span>
+<span id="cb16-40"><a href="#cb16-40" aria-hidden="true" tabindex="-1"></a>        rot <span class="cf">if</span> dup <span class="op">-</span><span class="dv">1</span> <span class="op">=</span> then slice <span class="dv">0</span> OFF <span class="op">-&gt;</span> <span class="op">&lt;-</span></span>
+<span id="cb16-41"><a href="#cb16-41" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span> dup slice <span class="dv">0</span> rot state swap <span class="op">-&gt;</span> <span class="op">&lt;-</span> end</span>
+<span id="cb16-42"><a href="#cb16-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-43"><a href="#cb16-43" aria-hidden="true" tabindex="-1"></a>        <span class="er"># slice[i]...</span></span>
+<span id="cb16-44"><a href="#cb16-44" aria-hidden="true" tabindex="-1"></a>        rot dup slice <span class="dv">1</span> rot state swap <span class="op">-&gt;</span> <span class="op">&lt;-</span></span>
+<span id="cb16-45"><a href="#cb16-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-46"><a href="#cb16-46" aria-hidden="true" tabindex="-1"></a>        <span class="er"># slice[i + 1]...</span></span>
+<span id="cb16-47"><a href="#cb16-47" aria-hidden="true" tabindex="-1"></a>        rot <span class="cf">if</span> dup n <span class="op">-&gt;</span> <span class="op">=</span> then slice <span class="dv">2</span> OFF <span class="op">-&gt;</span> <span class="op">&lt;-</span></span>
+<span id="cb16-48"><a href="#cb16-48" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span> dup slice <span class="dv">2</span> rot state swap <span class="op">-&gt;</span> <span class="op">&lt;-</span> end</span>
+<span id="cb16-49"><a href="#cb16-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-50"><a href="#cb16-50" aria-hidden="true" tabindex="-1"></a>        drop drop drop</span>
+<span id="cb16-51"><a href="#cb16-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-52"><a href="#cb16-52" aria-hidden="true" tabindex="-1"></a>        <span class="er"># Match pattern to determine next state</span></span>
+<span id="cb16-53"><a href="#cb16-53" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> slice <span class="dv">0</span> <span class="op">-&gt;</span> ON <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-54"><a href="#cb16-54" aria-hidden="true" tabindex="-1"></a>           slice <span class="dv">1</span> <span class="op">-&gt;</span> ON <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-55"><a href="#cb16-55" aria-hidden="true" tabindex="-1"></a>           slice <span class="dv">2</span> <span class="op">-&gt;</span> ON <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-56"><a href="#cb16-56" aria-hidden="true" tabindex="-1"></a>           <span class="op">&amp;&amp;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb16-57"><a href="#cb16-57" aria-hidden="true" tabindex="-1"></a>        then</span>
+<span id="cb16-58"><a href="#cb16-58" aria-hidden="true" tabindex="-1"></a>            next over OFF <span class="op">-&gt;</span> <span class="op">&lt;-</span></span>
+<span id="cb16-59"><a href="#cb16-59" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span> end</span>
+<span id="cb16-60"><a href="#cb16-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-61"><a href="#cb16-61" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> slice <span class="dv">0</span> <span class="op">-&gt;</span> ON  <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-62"><a href="#cb16-62" aria-hidden="true" tabindex="-1"></a>           slice <span class="dv">1</span> <span class="op">-&gt;</span> ON  <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-63"><a href="#cb16-63" aria-hidden="true" tabindex="-1"></a>           slice <span class="dv">2</span> <span class="op">-&gt;</span> OFF <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-64"><a href="#cb16-64" aria-hidden="true" tabindex="-1"></a>           <span class="op">&amp;&amp;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb16-65"><a href="#cb16-65" aria-hidden="true" tabindex="-1"></a>        then</span>
+<span id="cb16-66"><a href="#cb16-66" aria-hidden="true" tabindex="-1"></a>            next over ON <span class="op">-&gt;</span> <span class="op">&lt;-</span></span>
+<span id="cb16-67"><a href="#cb16-67" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span> end</span>
+<span id="cb16-68"><a href="#cb16-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-69"><a href="#cb16-69" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> slice <span class="dv">0</span> <span class="op">-&gt;</span> ON  <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-70"><a href="#cb16-70" aria-hidden="true" tabindex="-1"></a>           slice <span class="dv">1</span> <span class="op">-&gt;</span> OFF <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-71"><a href="#cb16-71" aria-hidden="true" tabindex="-1"></a>           slice <span class="dv">2</span> <span class="op">-&gt;</span> ON  <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-72"><a href="#cb16-72" aria-hidden="true" tabindex="-1"></a>           <span class="op">&amp;&amp;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb16-73"><a href="#cb16-73" aria-hidden="true" tabindex="-1"></a>        then</span>
+<span id="cb16-74"><a href="#cb16-74" aria-hidden="true" tabindex="-1"></a>            next over ON <span class="op">-&gt;</span> <span class="op">&lt;-</span></span>
+<span id="cb16-75"><a href="#cb16-75" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span> end</span>
+<span id="cb16-76"><a href="#cb16-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-77"><a href="#cb16-77" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> slice <span class="dv">0</span> <span class="op">-&gt;</span> ON  <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-78"><a href="#cb16-78" aria-hidden="true" tabindex="-1"></a>           slice <span class="dv">1</span> <span class="op">-&gt;</span> OFF <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-79"><a href="#cb16-79" aria-hidden="true" tabindex="-1"></a>           slice <span class="dv">2</span> <span class="op">-&gt;</span> OFF <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-80"><a href="#cb16-80" aria-hidden="true" tabindex="-1"></a>           <span class="op">&amp;&amp;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb16-81"><a href="#cb16-81" aria-hidden="true" tabindex="-1"></a>        then</span>
+<span id="cb16-82"><a href="#cb16-82" aria-hidden="true" tabindex="-1"></a>            next over OFF <span class="op">-&gt;</span> <span class="op">&lt;-</span></span>
+<span id="cb16-83"><a href="#cb16-83" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span> end</span>
+<span id="cb16-84"><a href="#cb16-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-85"><a href="#cb16-85" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> slice <span class="dv">0</span> <span class="op">-&gt;</span> OFF <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-86"><a href="#cb16-86" aria-hidden="true" tabindex="-1"></a>           slice <span class="dv">1</span> <span class="op">-&gt;</span> ON  <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-87"><a href="#cb16-87" aria-hidden="true" tabindex="-1"></a>           slice <span class="dv">2</span> <span class="op">-&gt;</span> ON  <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-88"><a href="#cb16-88" aria-hidden="true" tabindex="-1"></a>           <span class="op">&amp;&amp;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb16-89"><a href="#cb16-89" aria-hidden="true" tabindex="-1"></a>        then</span>
+<span id="cb16-90"><a href="#cb16-90" aria-hidden="true" tabindex="-1"></a>            next over ON <span class="op">-&gt;</span> <span class="op">&lt;-</span></span>
+<span id="cb16-91"><a href="#cb16-91" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span> end</span>
+<span id="cb16-92"><a href="#cb16-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-93"><a href="#cb16-93" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> slice <span class="dv">0</span> <span class="op">-&gt;</span> OFF <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-94"><a href="#cb16-94" aria-hidden="true" tabindex="-1"></a>           slice <span class="dv">1</span> <span class="op">-&gt;</span> ON  <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-95"><a href="#cb16-95" aria-hidden="true" tabindex="-1"></a>           slice <span class="dv">2</span> <span class="op">-&gt;</span> OFF <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-96"><a href="#cb16-96" aria-hidden="true" tabindex="-1"></a>           <span class="op">&amp;&amp;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb16-97"><a href="#cb16-97" aria-hidden="true" tabindex="-1"></a>        then</span>
+<span id="cb16-98"><a href="#cb16-98" aria-hidden="true" tabindex="-1"></a>            next over ON <span class="op">-&gt;</span> <span class="op">&lt;-</span></span>
+<span id="cb16-99"><a href="#cb16-99" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span> end</span>
+<span id="cb16-100"><a href="#cb16-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-101"><a href="#cb16-101" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> slice <span class="dv">0</span> <span class="op">-&gt;</span> OFF <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-102"><a href="#cb16-102" aria-hidden="true" tabindex="-1"></a>           slice <span class="dv">1</span> <span class="op">-&gt;</span> OFF <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-103"><a href="#cb16-103" aria-hidden="true" tabindex="-1"></a>           slice <span class="dv">2</span> <span class="op">-&gt;</span> ON  <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-104"><a href="#cb16-104" aria-hidden="true" tabindex="-1"></a>           <span class="op">&amp;&amp;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb16-105"><a href="#cb16-105" aria-hidden="true" tabindex="-1"></a>        then</span>
+<span id="cb16-106"><a href="#cb16-106" aria-hidden="true" tabindex="-1"></a>            next over ON <span class="op">-&gt;</span> <span class="op">&lt;-</span></span>
+<span id="cb16-107"><a href="#cb16-107" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span> end</span>
+<span id="cb16-108"><a href="#cb16-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-109"><a href="#cb16-109" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> slice <span class="dv">0</span> <span class="op">-&gt;</span> OFF <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-110"><a href="#cb16-110" aria-hidden="true" tabindex="-1"></a>           slice <span class="dv">1</span> <span class="op">-&gt;</span> OFF <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-111"><a href="#cb16-111" aria-hidden="true" tabindex="-1"></a>           slice <span class="dv">2</span> <span class="op">-&gt;</span> OFF <span class="op">-&gt;</span> <span class="op">=</span></span>
+<span id="cb16-112"><a href="#cb16-112" aria-hidden="true" tabindex="-1"></a>           <span class="op">&amp;&amp;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb16-113"><a href="#cb16-113" aria-hidden="true" tabindex="-1"></a>        then</span>
+<span id="cb16-114"><a href="#cb16-114" aria-hidden="true" tabindex="-1"></a>            next over OFF <span class="op">-&gt;</span> <span class="op">&lt;-</span></span>
+<span id="cb16-115"><a href="#cb16-115" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span> end</span>
+<span id="cb16-116"><a href="#cb16-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-117"><a href="#cb16-117" aria-hidden="true" tabindex="-1"></a>        <span class="dv">1</span> <span class="op">+</span></span>
+<span id="cb16-118"><a href="#cb16-118" aria-hidden="true" tabindex="-1"></a>    end drop</span>
+<span id="cb16-119"><a href="#cb16-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-120"><a href="#cb16-120" aria-hidden="true" tabindex="-1"></a>    <span class="er"># Copy the next state to the current state</span></span>
+<span id="cb16-121"><a href="#cb16-121" aria-hidden="true" tabindex="-1"></a>    <span class="dv">0</span> <span class="cf">while</span> dup n <span class="op">-&gt;</span> <span class="op">!=</span> <span class="cf">do</span></span>
+<span id="cb16-122"><a href="#cb16-122" aria-hidden="true" tabindex="-1"></a>        state over next over <span class="op">-&gt;</span> <span class="op">&lt;-</span></span>
+<span id="cb16-123"><a href="#cb16-123" aria-hidden="true" tabindex="-1"></a>        <span class="dv">1</span> <span class="op">+</span></span>
+<span id="cb16-124"><a href="#cb16-124" aria-hidden="true" tabindex="-1"></a>    end drop</span>
+<span id="cb16-125"><a href="#cb16-125" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb16-126"><a href="#cb16-126" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1</span> <span class="op">+</span></span>
+<span id="cb16-127"><a href="#cb16-127" aria-hidden="true" tabindex="-1"></a>end drop</span></code></pre></div>
+        <p>This is far from a rigorous evaluation of the
+        Turing-completeness of the language but it suffices for this
+        article.</p>
+        <h2 id="future-directions">Future directions</h2>
+        <p>The stack-oriented programming paradigm is rather simple to
+        understand, making it somewhat straightforward to design and
+        write a minimally viable programming language. It’s also a great
+        exercise to explore new ways of thinking about code. Seriously,
+        even writing something as “simple” as <a
+        href="https://github.com/jdpmk/jenga/blob/master/examples/fibonacci.jg">fibonacci.jg</a>
+        can be really tricky when juggling data around the stack!</p>
+        <p>I would highly recommend attempting to write a language like
+        this, especially if you are new to programming language
+        implementation (like I am) and only know some of the basics.</p>
+        <p>To close, here are a couple of enhancements for Jenga I had
+        in mind, with the goal of improving its practicality and
+        expressiveness.</p>
+        <h3 id="macros">Macros</h3>
+        <p>A striking omission from the language is the function or
+        procedure abstraction (ignoring intrinsics like
+        <code>println</code>). However, I believe a simpler abstraction
+        that can be just as powerful in this language are macros. Think
+        simple, <a
+        href="https://en.wikipedia.org/wiki/C_preprocessor">C-style</a>
+        string replacement.</p>
+        <p>A simple motivation for this sort of a feature can actually
+        be found in the Rule 110 implementation above!</p>
+        <p>In order to express conditions, in C, of the form,</p>
+        <div class="sourceCode" id="cb17"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>a <span class="op">&amp;&amp;</span> b <span class="op">&amp;&amp;</span> c</span></code></pre></div>
+        <p>we write, in Jenga,</p>
+        <div class="sourceCode" id="cb18"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>a b c <span class="op">&amp;&amp;</span> <span class="op">&amp;&amp;</span></span></code></pre></div>
+        <p>The postfix nature of the syntax can make this expression
+        difficult for humans to parse, especially when <code>a</code>,
+        <code>b</code>, and <code>c</code> themselves are also more
+        complicated expressions.</p>
+        <p>What if we could instead define the following macro?</p>
+        <div class="sourceCode" id="cb19"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>macro <span class="op">&amp;&amp;&amp;</span> <span class="cf">do</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">&amp;&amp;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>end</span></code></pre></div>
+        <p>Then, we could write,</p>
+        <div class="sourceCode" id="cb20"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>a b c <span class="op">&amp;&amp;&amp;</span></span></code></pre></div>
+        <p>which, before type-checking and evaluation, would expand
+        to,</p>
+        <div class="sourceCode" id="cb21"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>a b c <span class="op">&amp;&amp;</span> <span class="op">&amp;&amp;</span></span></code></pre></div>
+        <p>which is an equivalent program!</p>
+        <p>Furthermore, to avoid macro expansions, we could even enhance
+        the type-checker to determine a signature for a given macro. For
+        example, the above macro <code>&amp;&amp;&amp;</code> could have
+        the type signature,</p>
+        <div class="sourceCode" id="cb22"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="op">&amp;&amp;&amp;</span> <span class="op">:</span> <span class="op">(</span><span class="dt">bool</span><span class="op">,</span> <span class="dt">bool</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="dt">bool</span></span></code></pre></div>
+        <p>meaning it takes two booleans off the stack and produces a
+        boolean.</p>
+        <p>The example above is more like <a
+        href="https://en.wikipedia.org/wiki/Syntactic_sugar">syntactic
+        sugar</a> (i.e. it could be quickly implemented by introducing a
+        new symbol to the core language) so let’s give another example:
+        the absolute value “function” (it’s still just a macro).</p>
+        <div class="sourceCode" id="cb23"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>macro abs <span class="cf">do</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> dup <span class="dv">0</span> <span class="op">&lt;</span> then</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>        <span class="op">-</span><span class="dv">1</span> <span class="op">*</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>        <span class="er"># non-negative, do nothing</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>end</span></code></pre></div>
+        <p>which could have the type signature,</p>
+        <div class="sourceCode" id="cb24"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>abs <span class="op">:</span> <span class="dt">int</span> <span class="op">-&gt;</span> <span class="dt">int</span></span></code></pre></div>
+        <p>meaning it takes one integer off the stack and produces
+        another integer.</p>
+        <p>Let’s go one step further.</p>
+        <div class="sourceCode" id="cb25"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="er"># this macro has the signature</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="er"># negate : int -&gt; int</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>macro negate <span class="cf">do</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">-</span><span class="dv">1</span> <span class="op">*</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>end</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>macro abs <span class="cf">do</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> dup <span class="dv">0</span> <span class="op">&lt;</span> then negate <span class="cf">else</span> end</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>end</span></code></pre></div>
+        <p>We can go even further by creating a predicate called
+        <code>negative</code>.</p>
+        <div class="sourceCode" id="cb26"><pre
+        class="sourceCode c"><code class="sourceCode c"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="er"># this macro has the signature</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="er"># negative : int -&gt; bool</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>macro negative <span class="cf">do</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    <span class="dv">0</span> <span class="op">&lt;</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>end</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="er"># this macro has the signature</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="er"># negate : int -&gt; int</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>macro negate <span class="cf">do</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">-</span><span class="dv">1</span> <span class="op">*</span></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>end</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>macro abs <span class="cf">do</span></span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> dup negative then negate <span class="cf">else</span> end</span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>end</span></code></pre></div>
+        <p>Combining macros with concatenative style makes the code
+        <em>really</em> expressive!</p>
+        <h3 id="compilation">Compilation</h3>
+        <p>Another enhancement to the practicality of Jenga would be the
+        ability to compile a program to a native executable. As always,
+        when moving from interpretation to native execution, there is a
+        potential for performance improvements. I have not yet
+        benchmarked the OCaml implementation but it feels snappy.</p>
+        <h3 id="system-calls">System calls</h3>
+        <p>The ability to interact with system calls would greatly
+        expand the opportunity to write programs which do more “useful”
+        I/O with arbitrary file and network descriptors. It would be
+        awesome to reimplement common utilities like <code>cat</code> or
+        <code>ls</code>, or even write a simple TCP server in Jenga.</p>
+        <footer class="footer">
+      <p>© 2021-2023. Joydeep Mukherjee</p>
+    </footer>
+  </body>
+</html>
