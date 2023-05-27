@@ -1,5 +1,5 @@
 ---
-title: Jenga, a stack-oriented, concatenative programming language
+title: 'Jenga: a stack-oriented, concatenative programming language'
 author: Joydeep Mukherjee
 date: May 26, 2023
 abstract: 'In this article, I describe Jenga, a stack-oriented, concatenative programming language I wrote several months ago as an exercise to explore a new (somewhat esoteric) programming paradigm and apply my recently-acquired knowledge of programming languages from [CS 421](https://courses.grainger.illinois.edu/cs421/fa2022/) at UIUC. I implemented an interpreter for the language in OCaml, using standard tools such as (ocaml)yacc and (ocaml)lex. References, source code, and example Jenga programs can be found in the [project repository on GitHub](https://github.com/jdpmk/jenga).'
