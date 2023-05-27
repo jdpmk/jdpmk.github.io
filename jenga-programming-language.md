@@ -481,10 +481,10 @@ to determine a signature for a given macro. For example, the above macro `&&&`
 could have the type signature,
 
 ```c
-&&& : (bool, bool) -> bool
+&&& : (bool, bool, bool) -> bool
 ```
 
-meaning it takes two booleans off the stack and produces a boolean.
+meaning it takes three booleans off the stack and produces a boolean.
 
 The example above is more like
 [syntactic sugar](https://en.wikipedia.org/wiki/Syntactic_sugar)
