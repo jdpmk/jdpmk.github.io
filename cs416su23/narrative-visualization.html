@@ -1,0 +1,134 @@
+<html>
+  <!-- Import d3.js -->
+  <script src='https://d3js.org/d3.v5.min.js'></script>
+
+  <!-- CSS -->
+  <style>
+    body {
+      font-family: Helvetica;
+      margin: 50px;
+    }
+    div.container {
+      margin: auto;
+    }
+    svg.frame {
+      border-style: solid;
+      padding: 10px;
+    }
+    ul.nav {
+      padding-left: 0px;
+    }
+    li.navbutton {
+      padding: 5px;
+      cursor: pointer;
+      display: inline;
+      border-style: solid;
+      opacity: 33%;
+    }
+  </style>
+
+  <!-- HTML body -->
+  <body onload="nav0()">
+    <div class="container">
+      <ul class="nav">
+        <li id="nav0" onClick="updateSelectedSlide(0)" class="navbutton">1</li>
+        <li id="nav1" onClick="updateSelectedSlide(1)" class="navbutton">2</li>
+        <li id="nav2" onClick="updateSelectedSlide(2)" class="navbutton">3</li>
+        <li id="nav3" onClick="updateSelectedSlide(3)" class="navbutton">4</li>
+      </ul>
+      <!--<svg class="frame" width="1024" height="576"> -->
+      <svg class="frame">
+      </svg>
+      <h1>S&P 500: from 1990 to 2023</h1>
+    <div>
+
+    <!-- d3.js script -->
+    <script>
+      // === References ===
+      // - Margin convention: https://observablehq.com/@d3/margin-convention
+      // - Working with dates: http://using-d3js.com/04_04_working_with_dates.html
+      // - Basic line chart: https://d3-graph-gallery.com/graph/line_basic.html
+
+      // === Constants ===
+
+      const margin = ({top: 40, right: 40, bottom: 40, left: 40});
+      const width = 1024;
+      const height = 576;
+
+      // === Page navigation ===
+
+      function updateSelectedSlide(i) {
+        document.getElementById("nav" + selectedSlide).style.opacity = "33%";
+        selectedSlide = i;
+        document.getElementById("nav" + selectedSlide).style.opacity = "100%";
+      }
+
+      let selectedSlide = 0;
+      updateSelectedSlide(selectedSlide);
+
+      // === Helpers ===
+
+      // Load CSV data (see README for original data source)
+      async function fetchData() {
+        const url = "https://joydeep.dev/cs416su23/sp500.csv";
+        const raw = await d3.csv(url);
+
+        const parseTime = d3.timeParse("%Y-%m-%d");
+
+        const data = raw
+          // Filter out entries not for the first day of the month
+          .filter(entry =>
+            ["28", "30", "31"].every(day => !entry.Date.includes(day))
+          )
+          // Per-function filtering predicate
+          // .filter(entry => predicate(entry))
+          // Parse time for use in D3 axes
+          .map(entry => {
+            return {
+              Date: parseTime(entry.Date),
+              Value: entry.Value
+            };
+          });
+
+        console.log("[DEBUG] Loaded data successfully.");
+        return data;
+      }
+
+      // === Charts for each slide ===
+
+      async function nav0() {
+        const data = await fetchData();
+
+        const xScale = d3.scaleTime()
+            .domain(d3.extent(data.map(e => e.Date)))
+            .range([margin.left, width - margin.right]);
+        const yScale = d3.scaleLinear()
+            .domain([0, d3.max(data, d => +d.Value)])
+            .range([height - margin.bottom, margin.top]);
+
+        var xAxis = d3.axisBottom(xScale).ticks(d3.timeYear);
+        var yAxis = d3.axisLeft(yScale);
+
+        const svg = d3.select("svg")
+                      .attr("width", width)
+                      .attr("height", height);
+
+        svg.append("g")
+            .attr("transform", "translate(0," + (height - margin.bottom) + ")")
+            .call(xAxis);
+        svg.append("g")
+           .attr("transform", "translate(" + margin.left + ",0)")
+           .call(yAxis);
+        svg.append("path")
+           // The first slide shows data until 2000-01-01
+           .datum(data.filter(e => e.Date < new Date(2000, 01, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "black")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+      }
+    </script>
+  </body>
+</html>
