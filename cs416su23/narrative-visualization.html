@@ -8,14 +8,12 @@
       font-family: Helvetica;
       margin: 50px;
     }
-    div.container {
-      margin: auto;
-    }
     svg.frame {
       border-style: solid;
       padding: 10px;
     }
     ul.nav {
+      display: inline-block;
       padding-left: 0px;
     }
     li.navbutton {
@@ -25,21 +23,38 @@
       border-style: solid;
       opacity: 33%;
     }
+    #subtitle {
+      margin-left: 20px;
+      display: inline-block;
+    }
+    .longform {
+      max-width: 1024px;
+    }
   </style>
 
   <!-- HTML body -->
-  <body onload="nav0()">
+  <body onload="nav1()">
     <div class="container">
-      <ul class="nav">
-        <li id="nav0" onClick="updateSelectedSlide(0)" class="navbutton">1</li>
-        <li id="nav1" onClick="updateSelectedSlide(1)" class="navbutton">2</li>
-        <li id="nav2" onClick="updateSelectedSlide(2)" class="navbutton">3</li>
-        <li id="nav3" onClick="updateSelectedSlide(3)" class="navbutton">4</li>
-      </ul>
-      <!--<svg class="frame" width="1024" height="576"> -->
-      <svg class="frame">
-      </svg>
-      <h1>S&P 500: from 1990 to 2023</h1>
+      <h1>S&P 500: 1990 to 2023</h1>
+      <div class="longform">
+        This visualization tracks the history of the S&P 500, a stock market
+        index of the 500 largest companies in the United States, from 1990 to
+        2023. Many major events are highlighted, to provide historical context
+        for economic growth and downturns.
+      </div>
+      <br>
+      <div class="horizontal">
+        <ul class="nav">
+          <li id="nav1" onClick="updateSelectedSlide(1)" class="navbutton">1</li>
+          <li id="nav2" onClick="updateSelectedSlide(2)" class="navbutton">2</li>
+          <li id="nav3" onClick="updateSelectedSlide(3)" class="navbutton">3</li>
+          <li id="nav4" onClick="updateSelectedSlide(4)" class="navbutton">4</li>
+          <li id="nav5" onClick="updateSelectedSlide(5)" class="navbutton">5</li>
+        </ul>
+        <h2 id="subtitle"></h2>
+      <div>
+      <svg class="frame"></svg>
+      <div class="longform" id="summary"></div>
     <div>
 
     <!-- d3.js script -->
@@ -51,19 +66,25 @@
 
       // === Constants ===
 
-      const margin = ({top: 40, right: 40, bottom: 40, left: 40});
+      const margin = ({top: 40, right: 40, bottom: 40, left: 70});
       const width = 1024;
       const height = 576;
 
       // === Page navigation ===
 
-      function updateSelectedSlide(i) {
+      async function updateSelectedSlide(i) {
         document.getElementById("nav" + selectedSlide).style.opacity = "33%";
         selectedSlide = i;
         document.getElementById("nav" + selectedSlide).style.opacity = "100%";
+
+        if (i == 1) nav1();
+        if (i == 2) nav2();
+        if (i == 3) nav3();
+        if (i == 4) nav4();
+        if (i == 5) nav5();
       }
 
-      let selectedSlide = 0;
+      let selectedSlide = 1;
       updateSelectedSlide(selectedSlide);
 
       // === Helpers ===
@@ -96,7 +117,9 @@
 
       // === Charts for each slide ===
 
-      async function nav0() {
+      async function nav1() {
+        document.getElementById("subtitle").innerText = "Early 2000s: The Dot-Com Bubble";
+
         const data = await fetchData();
 
         const xScale = d3.scaleTime()
@@ -109,6 +132,7 @@
         var xAxis = d3.axisBottom(xScale).ticks(d3.timeYear);
         var yAxis = d3.axisLeft(yScale);
 
+        d3.select("svg").html("");
         const svg = d3.select("svg")
                       .attr("width", width)
                       .attr("height", height);
@@ -119,12 +143,455 @@
         svg.append("g")
            .attr("transform", "translate(" + margin.left + ",0)")
            .call(yAxis);
+        svg.append("text")
+            .attr("text-anchor", "end")
+            .attr("x", width / 2)
+            .attr("y", height)
+            .text("Year");
+        svg.append("text")
+            .attr("text-anchor", "end")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height / 2 + margin.top)
+            .attr("y", 20)
+            .text("S&P 500 Index");
+
         svg.append("path")
-           // The first slide shows data until 2000-01-01
-           .datum(data.filter(e => e.Date < new Date(2000, 01, 01)))
+           .datum(data.filter(e => e.Date <= new Date(2000, 01, 01)))
            .attr("fill", "none")
-           .attr("stroke", "black")
+           .attr("stroke", "green")
+           .attr("stroke-width", 3)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2000, 01, 01) &&
+             e.Date <= new Date(2003, 01, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "red")
+           .attr("stroke-width", 3)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+      }
+
+      async function nav2() {
+        document.getElementById("subtitle").innerText = "Great Recession: Housing Crisis";
+
+        const data = await fetchData();
+
+        const xScale = d3.scaleTime()
+            .domain(d3.extent(data.map(e => e.Date)))
+            .range([margin.left, width - margin.right]);
+        const yScale = d3.scaleLinear()
+            .domain([0, d3.max(data, d => +d.Value)])
+            .range([height - margin.bottom, margin.top]);
+
+        var xAxis = d3.axisBottom(xScale).ticks(d3.timeYear);
+        var yAxis = d3.axisLeft(yScale);
+
+        d3.select("svg").html("");
+        const svg = d3.select("svg")
+                      .attr("width", width)
+                      .attr("height", height);
+
+        svg.append("g")
+            .attr("transform", "translate(0," + (height - margin.bottom) + ")")
+            .call(xAxis);
+        svg.append("g")
+           .attr("transform", "translate(" + margin.left + ",0)")
+           .call(yAxis);
+        svg.append("text")
+            .attr("text-anchor", "end")
+            .attr("x", width / 2)
+            .attr("y", height)
+            .text("Year");
+        svg.append("text")
+            .attr("text-anchor", "end")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height / 2 + margin.top)
+            .attr("y", 20)
+            .text("S&P 500 Index");
+
+        svg.append("path")
+           .datum(data.filter(e => e.Date <= new Date(2000, 01, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "green")
            .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2000, 01, 01) &&
+             e.Date <= new Date(2003, 01, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "red")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2003, 01, 01) &&
+             e.Date <= new Date(2007, 02, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "green")
+           .attr("stroke-width", 3)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2007, 01, 01) &&
+             e.Date <= new Date(2009, 02, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "red")
+           .attr("stroke-width", 3)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+      }
+
+      async function nav3() {
+        document.getElementById("subtitle").innerText = "Growth and the COVID-19 Pandemic";
+
+        const data = await fetchData();
+
+        const xScale = d3.scaleTime()
+            .domain(d3.extent(data.map(e => e.Date)))
+            .range([margin.left, width - margin.right]);
+        const yScale = d3.scaleLinear()
+            .domain([0, d3.max(data, d => +d.Value)])
+            .range([height - margin.bottom, margin.top]);
+
+        var xAxis = d3.axisBottom(xScale).ticks(d3.timeYear);
+        var yAxis = d3.axisLeft(yScale);
+
+        d3.select("svg").html("");
+        const svg = d3.select("svg")
+                      .attr("width", width)
+                      .attr("height", height);
+
+        svg.append("g")
+            .attr("transform", "translate(0," + (height - margin.bottom) + ")")
+            .call(xAxis);
+        svg.append("g")
+           .attr("transform", "translate(" + margin.left + ",0)")
+           .call(yAxis);
+        svg.append("text")
+            .attr("text-anchor", "end")
+            .attr("x", width / 2)
+            .attr("y", height)
+            .text("Year");
+        svg.append("text")
+            .attr("text-anchor", "end")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height / 2 + margin.top)
+            .attr("y", 20)
+            .text("S&P 500 Index");
+
+        svg.append("path")
+           .datum(data.filter(e => e.Date <= new Date(2000, 01, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "green")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2000, 01, 01) &&
+             e.Date <= new Date(2003, 01, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "red")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2003, 01, 01) &&
+             e.Date <= new Date(2007, 02, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "green")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2007, 01, 01) &&
+             e.Date <= new Date(2009, 02, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "red")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2009, 02, 01) &&
+             e.Date <= new Date(2020, 01, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "green")
+           .attr("stroke-width", 3)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2020, 01, 01) &&
+             e.Date <= new Date(2020, 03, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "red")
+           .attr("stroke-width", 3)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+      }
+
+      async function nav4() {
+        document.getElementById("subtitle").innerText = "Recession Fears and Conflict: Market Decline";
+
+        const data = await fetchData();
+
+        const xScale = d3.scaleTime()
+            .domain(d3.extent(data.map(e => e.Date)))
+            .range([margin.left, width - margin.right]);
+        const yScale = d3.scaleLinear()
+            .domain([0, d3.max(data, d => +d.Value)])
+            .range([height - margin.bottom, margin.top]);
+
+        var xAxis = d3.axisBottom(xScale).ticks(d3.timeYear);
+        var yAxis = d3.axisLeft(yScale);
+
+        d3.select("svg").html("");
+        const svg = d3.select("svg")
+                      .attr("width", width)
+                      .attr("height", height);
+
+        svg.append("g")
+            .attr("transform", "translate(0," + (height - margin.bottom) + ")")
+            .call(xAxis);
+        svg.append("g")
+           .attr("transform", "translate(" + margin.left + ",0)")
+           .call(yAxis);
+        svg.append("text")
+            .attr("text-anchor", "end")
+            .attr("x", width / 2)
+            .attr("y", height)
+            .text("Year");
+        svg.append("text")
+            .attr("text-anchor", "end")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height / 2 + margin.top)
+            .attr("y", 20)
+            .text("S&P 500 Index");
+
+        svg.append("path")
+           .datum(data.filter(e => e.Date <= new Date(2000, 01, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "green")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2000, 01, 01) &&
+             e.Date <= new Date(2003, 01, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "red")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2003, 01, 01) &&
+             e.Date <= new Date(2007, 02, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "green")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2007, 01, 01) &&
+             e.Date <= new Date(2009, 02, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "red")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2009, 02, 01) &&
+             e.Date <= new Date(2020, 01, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "green")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2020, 01, 01) &&
+             e.Date <= new Date(2020, 03, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "red")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2020, 03, 01) &&
+             e.Date <= new Date(2021, 11, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "green")
+           .attr("stroke-width", 3)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2021, 11, 01) &&
+             e.Date <= new Date(2022, 09, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "red")
+           .attr("stroke-width", 3)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+      }
+
+      async function nav5() {
+        document.getElementById("subtitle").innerText = "Today: Recovery in 2023";
+
+        const data = await fetchData();
+
+        const xScale = d3.scaleTime()
+            .domain(d3.extent(data.map(e => e.Date)))
+            .range([margin.left, width - margin.right]);
+        const yScale = d3.scaleLinear()
+            .domain([0, d3.max(data, d => +d.Value)])
+            .range([height - margin.bottom, margin.top]);
+
+        var xAxis = d3.axisBottom(xScale).ticks(d3.timeYear);
+        var yAxis = d3.axisLeft(yScale);
+
+        d3.select("svg").html("");
+        const svg = d3.select("svg")
+                      .attr("width", width)
+                      .attr("height", height);
+
+        svg.append("g")
+            .attr("transform", "translate(0," + (height - margin.bottom) + ")")
+            .call(xAxis);
+        svg.append("g")
+           .attr("transform", "translate(" + margin.left + ",0)")
+           .call(yAxis);
+        svg.append("text")
+            .attr("text-anchor", "end")
+            .attr("x", width / 2)
+            .attr("y", height)
+            .text("Year");
+        svg.append("text")
+            .attr("text-anchor", "end")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height / 2 + margin.top)
+            .attr("y", 20)
+            .text("S&P 500 Index");
+
+        svg.append("path")
+           .datum(data.filter(e => e.Date <= new Date(2000, 01, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "green")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2000, 01, 01) &&
+             e.Date <= new Date(2003, 01, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "red")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2003, 01, 01) &&
+             e.Date <= new Date(2007, 02, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "green")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2007, 01, 01) &&
+             e.Date <= new Date(2009, 02, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "red")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2009, 02, 01) &&
+             e.Date <= new Date(2020, 01, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "green")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2020, 01, 01) &&
+             e.Date <= new Date(2020, 03, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "red")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2020, 03, 01) &&
+             e.Date <= new Date(2021, 11, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "green")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2021, 11, 01) &&
+             e.Date <= new Date(2022, 09, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "red")
+           .attr("stroke-width", 1.5)
+           .attr("d", d3.line()
+                        .x(d => xScale(d.Date))
+                        .y(d => yScale(d.Value)));
+        svg.append("path")
+           .datum(data.filter(e =>
+             e.Date >= new Date(2022, 09, 01) &&
+             e.Date <= new Date(2023, 07, 01)))
+           .attr("fill", "none")
+           .attr("stroke", "green")
+           .attr("stroke-width", 3)
            .attr("d", d3.line()
                         .x(d => xScale(d.Date))
                         .y(d => yScale(d.Value)));
