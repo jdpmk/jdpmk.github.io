@@ -1,6 +1,9 @@
 <html>
-  <!-- Import d3.js -->
+  <!-- Load d3.js -->
   <script src='https://d3js.org/d3.v5.min.js'></script>
+
+  <!-- Load d3-annotation -->
+  <script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
 
   <!-- CSS -->
   <style>
@@ -30,6 +33,9 @@
     .longform {
       max-width: 1024px;
     }
+    .annotations {
+      font-size: 11px;
+    }
   </style>
 
   <!-- HTML body -->
@@ -37,10 +43,11 @@
     <div class="container">
       <h1>S&P 500: 1990 to 2023</h1>
       <div class="longform">
-        This visualization tracks the history of the S&P 500, a stock market
-        index of the 500 largest companies in the United States, from 1990 to
-        2023. Many major events are highlighted, to provide historical context
-        for economic growth and downturns.
+          This visualization tracks the history of the S&P 500, a stock market
+          index of the 500 largest companies in the United States, from 1990 to
+          2023. Many major events are highlighted, to provide historical
+          context for economic growth and downturns.
+          Use the buttons below to navigate the visualization.
       </div>
       <br>
       <div class="horizontal">
@@ -173,10 +180,74 @@
            .attr("d", d3.line()
                         .x(d => xScale(d.Date))
                         .y(d => yScale(d.Value)));
+
+        const annotations = [
+          {
+            note: {
+              label: "Suppose you invested $10,000 into the S&P 500 in January 1990. We will track the value of this investment over time.",
+              wrap: 200,
+              padding: 5
+            },
+            color: ["#000000"],
+            x: xScale(new Date(1990, 01, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(1990, 01, 01).getTime()).Value),
+            dy: -225,
+            dx: 25,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "A bull run in the late 1990s was fueled by fast growing Internet companies.",
+              align: "middle",
+              wrap: 150,
+              padding: 5
+            },
+            color: ["#000000"],
+            x: xScale(new Date(1996, 01, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(1996, 01, 01).getTime()).Value),
+            dy: -100,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "The S&P 500 hit an all-time high of 1552.87 on March 24, 2000. At this point in time, your investment from 1990 would be worth around $46,000.",
+              align: "right",
+              wrap: 100,
+              padding: 5
+            },
+            color: ["#000000"],
+            x: xScale(new Date(2000, 03, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2000, 03, 01).getTime()).Value),
+            dy: -200,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "At its lowest point around October 2002, the stock market had lost $5 trillion in market capitalization.",
+              align: "middle",
+              wrap: 75,
+              padding: 5
+            },
+            color: ["#000000"],
+            x: xScale(new Date(2002, 10, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2002, 10, 01).getTime()).Value),
+            dy: -100,
+            dx: 0,
+            connector: { end: "dot" }
+          }
+        ];
+        svg.append("g")
+           .call(d3.annotation().annotations(annotations));
       }
 
       async function nav2() {
-        document.getElementById("subtitle").innerText = "Great Recession: Housing Crisis";
+        document.getElementById("subtitle").innerText = "Late 2000s: The Great Recession and Housing Crisis";
 
         const data = await fetchData();
 
@@ -251,10 +322,119 @@
            .attr("d", d3.line()
                         .x(d => xScale(d.Date))
                         .y(d => yScale(d.Value)));
+
+        const annotations = [
+          {
+            note: {
+              label: "Suppose you invested $10,000 into the S&P 500 in January 1990. We will track the value of this investment over time.",
+              wrap: 200,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(1990, 01, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(1990, 01, 01).getTime()).Value),
+            dy: -225,
+            dx: 25,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "A bull run in the late 1990s was fueled by fast growing Internet companies.",
+              align: "middle",
+              wrap: 150,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(1996, 01, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(1996, 01, 01).getTime()).Value),
+            dy: -100,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "The S&P 500 hit an all-time high of 1552.87 on March 24, 2000. At this point in time, your investment from 1990 would be worth around $46,000.",
+              align: "right",
+              wrap: 100,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2000, 03, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2000, 03, 01).getTime()).Value),
+            dy: -200,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "At its lowest point around October 2002, the stock market had lost $5 trillion in market capitalization.",
+              align: "middle",
+              wrap: 75,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2002, 10, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2002, 10, 01).getTime()).Value),
+            dy: -100,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "The housing bubble bursts, after housing prices peak in 2006, kicking off a mortage crisis.",
+              align: "right",
+              wrap: 150,
+              padding: 5
+            },
+            color: ["#000000"],
+            x: xScale(new Date(2007, 02, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2007, 02, 01).getTime()).Value),
+            dy: 75,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "On October 11, 2007, the S&P 500 hit an all-time high 1576.09. At this point in time, your investment from 1990 would be worth around $46,000.",
+              align: "middle",
+              wrap: 150,
+              padding: 5
+            },
+            color: ["#000000"],
+            x: xScale(new Date(2007, 10, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2007, 10, 01).getTime()).Value),
+            dy: -175,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "On September 26, 2008, Washington Mutual goes bankrupt after a bank run.",
+              align: "left",
+              wrap: 75,
+              padding: 5
+            },
+            color: ["#000000"],
+            x: xScale(new Date(2008, 10, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2008, 10, 01).getTime()).Value),
+            dy: -100,
+            dx: 0,
+            connector: { end: "dot" }
+          }
+        ];
+        svg.append("g")
+           .call(d3.annotation().annotations(annotations));
       }
 
       async function nav3() {
-        document.getElementById("subtitle").innerText = "Growth and the COVID-19 Pandemic";
+        document.getElementById("subtitle").innerText = "2010s: Growth and the COVID-19 Pandemic";
 
         const data = await fetchData();
 
@@ -349,10 +529,164 @@
            .attr("d", d3.line()
                         .x(d => xScale(d.Date))
                         .y(d => yScale(d.Value)));
+
+        const annotations = [
+          {
+            note: {
+              label: "Suppose you invested $10,000 into the S&P 500 in January 1990. We will track the value of this investment over time.",
+              wrap: 200,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(1990, 01, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(1990, 01, 01).getTime()).Value),
+            dy: -225,
+            dx: 25,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "A bull run in the late 1990s was fueled by fast growing Internet companies.",
+              align: "middle",
+              wrap: 150,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(1996, 01, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(1996, 01, 01).getTime()).Value),
+            dy: -100,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "The S&P 500 hit an all-time high of 1552.87 on March 24, 2000. At this point in time, your investment from 1990 would be worth around $46,000.",
+              align: "right",
+              wrap: 100,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2000, 03, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2000, 03, 01).getTime()).Value),
+            dy: -200,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "At its lowest point around October 2002, the stock market had lost $5 trillion in market capitalization.",
+              align: "middle",
+              wrap: 75,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2002, 10, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2002, 10, 01).getTime()).Value),
+            dy: -100,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "The housing bubble bursts, after housing prices peak in 2006, kicking off a mortage crisis.",
+              align: "right",
+              wrap: 150,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2007, 02, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2007, 02, 01).getTime()).Value),
+            dy: 75,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "On October 11, 2007, the S&P 500 hit an all-time high 1576.09. At this point in time, your investment from 1990 would be worth around $46,000.",
+              align: "middle",
+              wrap: 150,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2007, 10, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2007, 10, 01).getTime()).Value),
+            dy: -175,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "On September 26, 2008, Washington Mutual goes bankrupt after a bank run.",
+              align: "left",
+              wrap: 75,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2008, 10, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2008, 10, 01).getTime()).Value),
+            dy: -100,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "The S&P 500 regains the closing record from October 2007.",
+              align: "middle",
+              wrap: 75,
+              padding: 5
+            },
+            color: ["#000000"],
+            x: xScale(new Date(2013, 03, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2013, 03, 01).getTime()).Value),
+            dy: -100,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "Through the 2010s, the S&P 500 grows steadily in one of the longest periods of market growth. ",
+              align: "right",
+              wrap: 75,
+              padding: 5
+            },
+            color: ["#000000"],
+            x: xScale(new Date(2017, 01, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2017, 01, 01).getTime()).Value),
+            dy: 100,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "In February 2020, the onset of the COVID-19 pandemic ends the peak of the bull run from 2009. At the start of the year, your 30-year old investment would be worth around $97,000.",
+              align: "right",
+              wrap: 200,
+              padding: 5
+            },
+            color: ["#000000"],
+            x: xScale(new Date(2020, 01, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2020, 01, 01).getTime()).Value),
+            dy: -5,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+        ];
+        svg.append("g")
+           .call(d3.annotation().annotations(annotations));
       }
 
       async function nav4() {
-        document.getElementById("subtitle").innerText = "Recession Fears and Conflict: Market Decline";
+        document.getElementById("subtitle").innerText = "2021 - 2022: Recession Fears and Conflict";
 
         const data = await fetchData();
 
@@ -467,10 +801,209 @@
            .attr("d", d3.line()
                         .x(d => xScale(d.Date))
                         .y(d => yScale(d.Value)));
+
+        const annotations = [
+          {
+            note: {
+              label: "Suppose you invested $10,000 into the S&P 500 in January 1990. We will track the value of this investment over time.",
+              wrap: 200,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(1990, 01, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(1990, 01, 01).getTime()).Value),
+            dy: -225,
+            dx: 25,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "A bull run in the late 1990s was fueled by fast growing Internet companies.",
+              align: "middle",
+              wrap: 150,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(1996, 01, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(1996, 01, 01).getTime()).Value),
+            dy: -100,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "The S&P 500 hit an all-time high of 1552.87 on March 24, 2000. At this point in time, your investment from 1990 would be worth around $46,000.",
+              align: "right",
+              wrap: 100,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2000, 03, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2000, 03, 01).getTime()).Value),
+            dy: -200,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "At its lowest point around October 2002, the stock market had lost $5 trillion in market capitalization.",
+              align: "middle",
+              wrap: 75,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2002, 10, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2002, 10, 01).getTime()).Value),
+            dy: -100,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "The housing bubble bursts, after housing prices peak in 2006, kicking off a mortage crisis.",
+              align: "right",
+              wrap: 150,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2007, 02, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2007, 02, 01).getTime()).Value),
+            dy: 75,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "On October 11, 2007, the S&P 500 hit an all-time high 1576.09. At this point in time, your investment from 1990 would be worth around $46,000.",
+              align: "middle",
+              wrap: 150,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2007, 10, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2007, 10, 01).getTime()).Value),
+            dy: -175,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "On September 26, 2008, Washington Mutual goes bankrupt after a bank run.",
+              align: "left",
+              wrap: 75,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2008, 10, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2008, 10, 01).getTime()).Value),
+            dy: -100,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "The S&P 500 regains the closing record from October 2007.",
+              align: "middle",
+              wrap: 75,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2013, 03, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2013, 03, 01).getTime()).Value),
+            dy: -100,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "Through the 2010s, the S&P 500 grows steadily in one of the longest periods of market growth. ",
+              align: "right",
+              wrap: 75,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2017, 01, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2017, 01, 01).getTime()).Value),
+            dy: 100,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "In February 2020, the onset of the COVID-19 pandemic ends the peak of the bull run from 2009. At the start of the year, your 30-year old investment would be worth around $97,000.",
+              align: "right",
+              wrap: 200,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2020, 01, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2020, 01, 01).getTime()).Value),
+            dy: -5,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "With a surge of growth during the pandemic, in January 2022 the S&P 500 closes at 4796.56, an all-time record. Your original investment from 1990 would now be worth around $140,000.",
+              align: "right",
+              wrap: 250,
+              padding: 5
+            },
+            color: ["#000000"],
+            x: xScale(new Date(2021, 11, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2021, 11, 01).getTime()).Value),
+            dy: 0,
+            dx: -25,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "Russia invades Ukraine in February 2022.",
+              align: "right",
+              wrap: 75,
+              padding: 5
+            },
+            color: ["#000000"],
+            x: xScale(new Date(2022, 02, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2022, 02, 01).getTime()).Value),
+            dy: 200,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "The tech industry and venture capital slow down, as layoffs affect thousands of workers in late 2022.",
+              align: "right",
+              wrap: 100,
+              padding: 5
+            },
+            color: ["#000000"],
+            x: xScale(new Date(2022, 09, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2022, 09, 01).getTime()).Value),
+            dy: 200,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+        ];
+        svg.append("g")
+           .call(d3.annotation().annotations(annotations));
       }
 
       async function nav5() {
-        document.getElementById("subtitle").innerText = "Today: Recovery in 2023";
+        document.getElementById("subtitle").innerText = "2023: Recovery and the Future";
 
         const data = await fetchData();
 
@@ -595,6 +1128,220 @@
            .attr("d", d3.line()
                         .x(d => xScale(d.Date))
                         .y(d => yScale(d.Value)));
+
+        const annotations = [
+          {
+            note: {
+              label: "Suppose you invested $10,000 into the S&P 500 in January 1990. We will track the value of this investment over time.",
+              wrap: 200,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(1990, 01, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(1990, 01, 01).getTime()).Value),
+            dy: -225,
+            dx: 25,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "A bull run in the late 1990s was fueled by fast growing Internet companies.",
+              align: "middle",
+              wrap: 150,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(1996, 01, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(1996, 01, 01).getTime()).Value),
+            dy: -100,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "The S&P 500 hit an all-time high of 1552.87 on March 24, 2000. At this point in time, your investment from 1990 would be worth around $46,000.",
+              align: "right",
+              wrap: 100,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2000, 03, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2000, 03, 01).getTime()).Value),
+            dy: -200,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "At its lowest point around October 2002, the stock market had lost $5 trillion in market capitalization.",
+              align: "middle",
+              wrap: 75,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2002, 10, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2002, 10, 01).getTime()).Value),
+            dy: -100,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "The housing bubble bursts, after housing prices peak in 2006, kicking off a mortage crisis.",
+              align: "right",
+              wrap: 150,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2007, 02, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2007, 02, 01).getTime()).Value),
+            dy: 75,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "On October 11, 2007, the S&P 500 hit an all-time high 1576.09. At this point in time, your investment from 1990 would be worth around $46,000.",
+              align: "middle",
+              wrap: 150,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2007, 10, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2007, 10, 01).getTime()).Value),
+            dy: -175,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "On September 26, 2008, Washington Mutual goes bankrupt after a bank run.",
+              align: "left",
+              wrap: 75,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2008, 10, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2008, 10, 01).getTime()).Value),
+            dy: -100,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "The S&P 500 regains the closing record from October 2007.",
+              align: "middle",
+              wrap: 75,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2013, 03, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2013, 03, 01).getTime()).Value),
+            dy: -100,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "Through the 2010s, the S&P 500 grows steadily in one of the longest periods of market growth. ",
+              align: "right",
+              wrap: 75,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2017, 01, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2017, 01, 01).getTime()).Value),
+            dy: 100,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "In February 2020, the onset of the COVID-19 pandemic ends the peak of the bull run from 2009. At the start of the year, your 30-year old investment would be worth around $97,000.",
+              align: "right",
+              wrap: 200,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2020, 01, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2020, 01, 01).getTime()).Value),
+            dy: -5,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "With a surge of growth during the pandemic, in January 2022 the S&P 500 closes at 4796.56, an all-time record. Your original investment from 1990 would now be worth around $140,000.",
+              align: "right",
+              wrap: 250,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2021, 11, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2021, 11, 01).getTime()).Value),
+            dy: 0,
+            dx: -25,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "Russia invades Ukraine in February 2022.",
+              align: "right",
+              wrap: 75,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2022, 02, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2022, 02, 01).getTime()).Value),
+            dy: 200,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "The tech industry and venture capital slow down, as layoffs affect thousands of workers in late 2022.",
+              align: "right",
+              wrap: 100,
+              padding: 5
+            },
+            color: ["#CFD0D1"],
+            x: xScale(new Date(2022, 09, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2022, 09, 01).getTime()).Value),
+            dy: 200,
+            dx: 0,
+            connector: { end: "dot" }
+          },
+          {
+            note: {
+              label: "The S&P 500 has appeared to be growing rapidly again in early 2023.",
+              align: "middle",
+              wrap: 75,
+              padding: 5
+            },
+            color: ["#000000"],
+            x: xScale(new Date(2023, 07, 01)),
+            y: yScale(data.find(d =>
+              d.Date.getTime() == new Date(2023, 06, 01).getTime()).Value),
+            dy: 325,
+            dx: 0,
+            connector: { end: "dot" }
+          }
+        ];
+        svg.append("g")
+           .call(d3.annotation().annotations(annotations));
       }
     </script>
   </body>
