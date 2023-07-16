@@ -36,12 +36,16 @@
     .annotations {
       font-size: 11px;
     }
+    a:link, a:hover, a:active, a:visited {
+        color: black;
+    }
   </style>
 
   <!-- HTML body -->
   <body onload="nav1()">
     <div class="container">
       <h1>S&P 500: 1990 to 2023</h1>
+      <h3>Joydeep Mukherjee (joydeep2)</h3>
       <div class="longform">
           This visualization tracks the history of the S&P 500, a stock market
           index of the 500 largest companies in the United States, from 1990 to
@@ -61,7 +65,10 @@
         <h2 id="subtitle"></h2>
       <div>
       <svg class="frame"></svg>
-      <div class="longform" id="summary"></div>
+      <div class="longform" id="summary">
+        <p><strong>Source:</strong> <a href="https://data.nasdaq.com/data/MULTPL/SP500_REAL_PRICE_MONTH-sp-500-real-price-by-month">Nasdaq S&P 500 Real Price Per Month</a>, Council on Foreign Relations, Wikipedia</p>
+        <p><strong>Disclaimer:</strong> this is not financial advice</p>
+      </div>
     <div>
 
     <!-- d3.js script -->
