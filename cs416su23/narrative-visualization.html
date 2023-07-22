@@ -39,6 +39,17 @@
     a:link, a:hover, a:active, a:visited {
         color: black;
     }
+    #tooltip {
+      position: absolute;
+      padding: 5px;
+      width: fit-content;
+      height: fit-content;
+      background-color: white;
+      border-style: solid;
+      opacity: 0;
+      font-size: 11px;
+      text-align: center;
+    }
   </style>
 
   <!-- HTML body -->
@@ -54,6 +65,8 @@
           Use the buttons below to navigate the visualization.
       </div>
       <br>
+
+      <!-- Visualization -->
       <div class="horizontal">
         <ul class="nav">
           <li id="nav1" onClick="updateSelectedSlide(1)" class="navbutton">1</li>
@@ -64,7 +77,10 @@
         </ul>
         <h2 id="subtitle"></h2>
       <div>
+      <div id="tooltip"></div>
       <svg class="frame"></svg>
+
+      <!-- Notes -->
       <div class="longform" id="summary">
         <p><strong>Source:</strong> <a href="https://data.nasdaq.com/data/MULTPL/SP500_REAL_PRICE_MONTH-sp-500-real-price-by-month">Nasdaq S&P 500 Real Price Per Month</a>, Council on Foreign Relations, Wikipedia</p>
         <p><strong>Disclaimer:</strong> this is not financial advice</p>
@@ -105,7 +121,7 @@
 
       // Load CSV data (see README for original data source)
       async function fetchData() {
-        const url = "https://joydeep.dev/cs416su23/sp500.csv";
+        const url = "https://joydeep.dev/cs416su23/sp500aug.csv";
         const raw = await d3.csv(url);
 
         const parseTime = d3.timeParse("%Y-%m-%d");
@@ -121,7 +137,11 @@
           .map(entry => {
             return {
               Date: parseTime(entry.Date),
-              Value: entry.Value
+              Value: entry.Value,
+              Date1: parseTime(entry.Date1),
+              Value1: entry.Value1,
+              Date2: parseTime(entry.Date2),
+              Value2: entry.Value2
             };
           });
 
@@ -169,6 +189,33 @@
             .attr("y", 20)
             .text("S&P 500 Index");
 
+        const tooltip = d3.select("#tooltip");
+
+        const mouseover = d => {
+          let message = null;
+          if (d.Date1 === null) {
+              message = `<p><strong>${d.Value} @ ${d.Date.toLocaleDateString("en-US")}</strong><p/><p>New High</p>`;
+          } else {
+              message = `<p><strong>${d.Value} @ ${d.Date.toLocaleDateString("en-US")}</strong><p/><p>Last occurred ${d.Date1.toLocaleDateString("en-US")} - ${d.Date2.toLocaleDateString("en-US")}</p>`;
+          }
+          tooltip.style("opacity", 1)
+                 .style("left", (d3.event.pageX + 25) + "px")
+                 .style("top", d3.event.pageY + "px")
+                 .html(message);
+        }
+
+        svg.selectAll("circle")
+           .data(data.filter(e => e.Date <= new Date(2003, 01, 01)))
+           .enter().append("circle")
+           .attr("r", 15)
+           .style("fill","none")
+           .style("stroke","none")
+           .style("pointer-events","all")
+           .attr("cx", d => xScale(d.Date))
+           .attr("cy", d => yScale(d.Value))
+           .on("mouseover", mouseover)
+           .on("mouseout", () => tooltip.style("opacity", 0));
+
         svg.append("path")
            .datum(data.filter(e => e.Date <= new Date(2000, 01, 01)))
            .attr("fill", "none")
@@ -177,6 +224,7 @@
            .attr("d", d3.line()
                         .x(d => xScale(d.Date))
                         .y(d => yScale(d.Value)));
+
         svg.append("path")
            .datum(data.filter(e =>
              e.Date >= new Date(2000, 01, 01) &&
@@ -290,6 +338,33 @@
             .attr("x", -height / 2 + margin.top)
             .attr("y", 20)
             .text("S&P 500 Index");
+
+        const tooltip = d3.select("#tooltip");
+
+        const mouseover = d => {
+          let message = null;
+          if (d.Date1 === null) {
+              message = `<p><strong>${d.Value} @ ${d.Date.toLocaleDateString("en-US")}</strong><p/><p>New High</p>`;
+          } else {
+              message = `<p><strong>${d.Value} @ ${d.Date.toLocaleDateString("en-US")}</strong><p/><p>Last occurred ${d.Date1.toLocaleDateString("en-US")} - ${d.Date2.toLocaleDateString("en-US")}</p>`;
+          }
+          tooltip.style("opacity", 1)
+                 .style("left", (d3.event.pageX + 25) + "px")
+                 .style("top", d3.event.pageY + "px")
+                 .html(message);
+        }
+
+        svg.selectAll("circle")
+           .data(data.filter(e => e.Date <= new Date(2009, 02, 01)))
+           .enter().append("circle")
+           .attr("r", 15)
+           .style("fill","none")
+           .style("stroke","none")
+           .style("pointer-events","all")
+           .attr("cx", d => xScale(d.Date))
+           .attr("cy", d => yScale(d.Value))
+           .on("mouseover", mouseover)
+           .on("mouseout", () => tooltip.style("opacity", 0));
 
         svg.append("path")
            .datum(data.filter(e => e.Date <= new Date(2000, 01, 01)))
@@ -477,6 +552,33 @@
             .attr("x", -height / 2 + margin.top)
             .attr("y", 20)
             .text("S&P 500 Index");
+
+        const tooltip = d3.select("#tooltip");
+
+        const mouseover = d => {
+          let message = null;
+          if (d.Date1 === null) {
+              message = `<p><strong>${d.Value} @ ${d.Date.toLocaleDateString("en-US")}</strong><p/><p>New High</p>`;
+          } else {
+              message = `<p><strong>${d.Value} @ ${d.Date.toLocaleDateString("en-US")}</strong><p/><p>Last occurred ${d.Date1.toLocaleDateString("en-US")} - ${d.Date2.toLocaleDateString("en-US")}</p>`;
+          }
+          tooltip.style("opacity", 1)
+                 .style("left", (d3.event.pageX + 25) + "px")
+                 .style("top", d3.event.pageY + "px")
+                 .html(message);
+        }
+
+        svg.selectAll("circle")
+           .data(data.filter(e => e.Date <= new Date(2020, 03, 01)))
+           .enter().append("circle")
+           .attr("r", 15)
+           .style("fill","none")
+           .style("stroke","none")
+           .style("pointer-events","all")
+           .attr("cx", d => xScale(d.Date))
+           .attr("cy", d => yScale(d.Value))
+           .on("mouseover", mouseover)
+           .on("mouseout", () => tooltip.style("opacity", 0));
 
         svg.append("path")
            .datum(data.filter(e => e.Date <= new Date(2000, 01, 01)))
@@ -729,6 +831,33 @@
             .attr("x", -height / 2 + margin.top)
             .attr("y", 20)
             .text("S&P 500 Index");
+
+        const tooltip = d3.select("#tooltip");
+
+        const mouseover = d => {
+          let message = null;
+          if (d.Date1 === null) {
+              message = `<p><strong>${d.Value} @ ${d.Date.toLocaleDateString("en-US")}</strong><p/><p>New High</p>`;
+          } else {
+              message = `<p><strong>${d.Value} @ ${d.Date.toLocaleDateString("en-US")}</strong><p/><p>Last occurred ${d.Date1.toLocaleDateString("en-US")} - ${d.Date2.toLocaleDateString("en-US")}</p>`;
+          }
+          tooltip.style("opacity", 1)
+                 .style("left", (d3.event.pageX + 25) + "px")
+                 .style("top", d3.event.pageY + "px")
+                 .html(message);
+        }
+
+        svg.selectAll("circle")
+           .data(data.filter(e => e.Date <= new Date(2022, 09, 01)))
+           .enter().append("circle")
+           .attr("r", 15)
+           .style("fill","none")
+           .style("stroke","none")
+           .style("pointer-events","all")
+           .attr("cx", d => xScale(d.Date))
+           .attr("cy", d => yScale(d.Value))
+           .on("mouseover", mouseover)
+           .on("mouseout", () => tooltip.style("opacity", 0));
 
         svg.append("path")
            .datum(data.filter(e => e.Date <= new Date(2000, 01, 01)))
@@ -1046,6 +1175,33 @@
             .attr("x", -height / 2 + margin.top)
             .attr("y", 20)
             .text("S&P 500 Index");
+
+        const tooltip = d3.select("#tooltip");
+
+        const mouseover = d => {
+          let message = null;
+          if (d.Date1 === null) {
+              message = `<p><strong>${d.Value} @ ${d.Date.toLocaleDateString("en-US")}</strong><p/><p>New High</p>`;
+          } else {
+              message = `<p><strong>${d.Value} @ ${d.Date.toLocaleDateString("en-US")}</strong><p/><p>Last occurred ${d.Date1.toLocaleDateString("en-US")} - ${d.Date2.toLocaleDateString("en-US")}</p>`;
+          }
+          tooltip.style("opacity", 1)
+                 .style("left", (d3.event.pageX + 25) + "px")
+                 .style("top", d3.event.pageY + "px")
+                 .html(message);
+        }
+
+        svg.selectAll("circle")
+           .data(data.filter(e => e.Date <= new Date(2023, 07, 01)))
+           .enter().append("circle")
+           .attr("r", 15)
+           .style("fill","none")
+           .style("stroke","none")
+           .style("pointer-events","all")
+           .attr("cx", d => xScale(d.Date))
+           .attr("cy", d => yScale(d.Value))
+           .on("mouseover", mouseover)
+           .on("mouseout", () => tooltip.style("opacity", 0));
 
         svg.append("path")
            .datum(data.filter(e => e.Date <= new Date(2000, 01, 01)))
