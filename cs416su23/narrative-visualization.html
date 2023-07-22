@@ -21,7 +21,6 @@
     }
     li.navbutton {
       padding: 5px;
-      cursor: pointer;
       display: inline;
       border-style: solid;
       opacity: 33%;
@@ -35,6 +34,9 @@
     }
     .annotations {
       font-size: 11px;
+    }
+    .clickable {
+      cursor: pointer;
     }
     a:link, a:hover, a:active, a:visited {
         color: black;
@@ -69,11 +71,13 @@
       <!-- Visualization -->
       <div class="horizontal">
         <ul class="nav">
-          <li id="nav1" onClick="updateSelectedSlide(1)" class="navbutton">1</li>
-          <li id="nav2" onClick="updateSelectedSlide(2)" class="navbutton">2</li>
-          <li id="nav3" onClick="updateSelectedSlide(3)" class="navbutton">3</li>
-          <li id="nav4" onClick="updateSelectedSlide(4)" class="navbutton">4</li>
-          <li id="nav5" onClick="updateSelectedSlide(5)" class="navbutton">5</li>
+          <li onClick="updatePrevSlide()" class="clickable navbutton"><</li>
+          <li id="nav1" class="navbutton">1</li>
+          <li id="nav2" class="navbutton">2</li>
+          <li id="nav3" class="navbutton">3</li>
+          <li id="nav4" class="navbutton">4</li>
+          <li id="nav5" class="navbutton">5</li>
+          <li onClick="updateNextSlide()" class="clickable navbutton">></li>
         </ul>
         <h2 id="subtitle"></h2>
       <div>
@@ -112,6 +116,34 @@
         if (i == 3) nav3();
         if (i == 4) nav4();
         if (i == 5) nav5();
+      }
+
+      async function updatePrevSlide(i) {
+        if (selectedSlide == 1) return;
+
+        document.getElementById("nav" + selectedSlide).style.opacity = "33%";
+        selectedSlide -= 1;
+        document.getElementById("nav" + selectedSlide).style.opacity = "100%";
+
+        if (selectedSlide == 1) nav1();
+        if (selectedSlide == 2) nav2();
+        if (selectedSlide == 3) nav3();
+        if (selectedSlide == 4) nav4();
+        if (selectedSlide == 5) nav5();
+      }
+
+      async function updateNextSlide(i) {
+        if (selectedSlide == 5) return;
+
+        document.getElementById("nav" + selectedSlide).style.opacity = "33%";
+        selectedSlide += 1;
+        document.getElementById("nav" + selectedSlide).style.opacity = "100%";
+
+        if (selectedSlide == 1) nav1();
+        if (selectedSlide == 2) nav2();
+        if (selectedSlide == 3) nav3();
+        if (selectedSlide == 4) nav4();
+        if (selectedSlide == 5) nav5();
       }
 
       let selectedSlide = 1;
