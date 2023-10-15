@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Notes on “Category Theory for
+Programmers” - joydeep.dev</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oxygen+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" type="text/css">
+    <!-- For MathJax -->
+              <script
+              src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+              type="text/javascript"></script>
+      </head>
+  <body>
+        <div class="nav">
+      <li class="name"><a href="./index.html">Joydeep Mukherjee</a></li>
+      <li><a href="./index.html">Home</a></li>
+      <li><a href="./projects.html">Projects</a></li>
+    </div>
+        <header id="title-block-header">
+      <h1 class="title">Notes on “Category Theory for Programmers”</h1>
+                  <p class="author">Joydeep Mukherjee</p>
+                  <p class="date">October 15, 2023</p>
+                  <p class="abstract">My notes on <a
+href="https://github.com/hmemcpy/milewski-ctfp-pdf">“Category Theory for
+Programmers” by Bartosz Milewski</a>. I summarize key points and
+highlight interesting quotes and ideas mentioned in each chapter.</p>
+          </header>
+        <h2 id="chapter-1">Chapter 1</h2>
+        <h3 id="category-the-essence-of-composition">Category: The
+        Essence of Composition</h3>
+        <p>We can think of categories as a collection of objects and
+        arrows, or morphisms, between these objects.</p>
+        <p>Morphisms compose. If <span class="math inline">\(f : A \to
+        B\)</span> and <span class="math inline">\(g : B \to C\)</span>
+        then there must be a morphism <span class="math inline">\(h : A
+        \to C\)</span>.</p>
+        <ol type="1">
+        <li><p>Composition of morphisms is associative.</p>
+        <ul>
+        <li><span class="math inline">\(f \circ g \circ h = (f \circ g)
+        \circ h = f \circ (g \circ h)\)</span></li>
+        </ul></li>
+        <li><p>An identity or unit arrow on an object is a unit of
+        composition.</p>
+        <ul>
+        <li>If <span class="math inline">\(f : A \to B\)</span> then
+        <span class="math inline">\(f \circ \text{id}_A = f\)</span> and
+        <span class="math inline">\(\text{id}_B \circ f =
+        f\)</span>.</li>
+        </ul></li>
+        </ol>
+        <p>In Haskell,</p>
+        <div class="sourceCode" id="cb1"><pre
+        class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Identity function.</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">id</span><span class="ot"> ::</span> a <span class="ot">-&gt;</span> a</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">id</span> x <span class="ot">=</span> x</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">-- Composition, given f :: a -&gt; b and g :: b -&gt; c.</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ot">h ::</span> a <span class="ot">-&gt;</span> c</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>h x <span class="ot">=</span> g f x</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">-- Or, in point-free notation.</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="ot">h ::</span> a <span class="ot">-&gt;</span> c</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>h <span class="ot">=</span> f <span class="op">.</span> g</span></code></pre></div>
+        <p>In C++,</p>
+        <div class="sourceCode" id="cb2"><pre
+        class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Identity function.</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>T id<span class="op">(</span>T x<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x<span class="op">;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">// Composition, given `B f(A)` and `C g(B)`.</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>C h<span class="op">(</span>A x<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> g<span class="op">(</span>f<span class="op">(</span>x<span class="op">));</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <blockquote>
+        <p>We need structure not because well-structured programs are
+        pleasant to look at, but because otherwise our brains can’t
+        process them efficiently. We often describe some piece of code
+        as elegant or beautiful, but what we really mean is that it’s
+        easy to process by our limited human minds.</p>
+        </blockquote>
+        <blockquote>
+        <p>The moment you have to dig into the implementation of the
+        object in order to understand how to compose it with other
+        objects, you’ve lost the advantages of your programming
+        paradigm.</p>
+        </blockquote>
+        <footer class="footer">
+      <p>© 2021-2023. Joydeep Mukherjee</p>
+    </footer>
+  </body>
+</html>
