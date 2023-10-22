@@ -36,7 +36,7 @@ h x = g f x
 
 -- Or, in point-free notation.
 h :: a -> c
-h = f . g
+h = g . f
 ```
 
 In C++,
@@ -62,3 +62,98 @@ that it’s easy to process by our limited human minds.
 > The moment you have to dig into the implementation of the object in order to
 understand how to compose it with other objects, you’ve lost the advantages of
 your programming paradigm.
+
+## Chapter 2
+
+### Types and Functions
+
+Types are finite or infinite sets of values. In Haskell, types like `String`
+and `Integer` are infinite sets, while `Char` and `Int` (machine-type integer)
+are finite.
+
+The category $\textbf{Set}$ consists of objects which are sets and morphisms
+which are functions. Unfortunately, types in Haskell do not correspond directly
+to this notion of sets, due to the possibility of non-terminating computations (see the [halting problem](https://en.wikipedia.org/wiki/Halting_problem)).
+
+The category of Haskell types and functions is known as $\textbf{Hask}$. Each
+type is extended by a special value, $\bot$ ("bottom"), which denotes a
+non-terminating computation.
+
+In Haskell, $\bot$ is denoted by `undefined`:
+
+```haskell
+f :: a -> b
+f x = undefined
+
+-- Since `undefined` is also a member of the type `a -> b`
+f :: a -> b
+f = undefined
+```
+
+Some tools for reasoning about programs include operational semantics and
+denotational semantics.
+
+Operational semantics describes the execution of a program in an "idealized
+interpreter". To prove a useful property of the program, you need to execute
+it.
+
+On the other hand, denotational semantics assigns a mathematical interpretation
+to each construct in the language. We can assert useful properties of programs
+by proving properties of its components.
+
+There is also a notion of pure functions. Pure functions produce the same value
+given the same output, no matter how many times evaluated. They also must not
+produce any side effects, unlike "dirty" functions.
+
+Mathematical functions are pure. Haskell is a pure functional programming
+language, so all functions in Haskell are also pure. We use monads to model
+side effects (covered later). Basically all useful programs perform some sort
+a side effect, so this is crucial.
+
+Now going back to types. Types are just sets. So you may have a type with no
+elements. This is Haskell's `Void` type (not the same as C++ `void`!).
+
+```haskell
+-- Cannot be called, no values in type `Void`.
+absurd :: Void -> a
+```
+
+A type with one element is C++'s `void` type. In Haskell, the type (and its
+corresponding singleton value) is `()` (pronounced "unit").
+
+```haskell
+f44 :: () -> Integer
+f44 () = 44
+
+-- Looks a lot like the equivalent call in C++! `f44();`
+f44 ()
+```
+
+We can also map every value in a given type to the value of the singleton type,
+`()`. In Haskell, this function is called `unit`, and is parametrically
+polymorphic - it doesn't dependent on the type passed in (and in this case
+doesn't depend on the value passed in either).
+
+```haskell
+unit :: a -> ()
+unit _ -> ()
+```
+
+Types of two element sets are booleans. In Haskell, this is `Bool`, and is
+defined as follows. Functions to `Bool` are known as predicates.
+
+```haskell
+data Bool = True | False
+
+-- isAlpha is a predicate.
+-- isAlpha :: Char -> Bool
+-- This expression evaluates to `True`.
+-- 'a' is an alphabetical character.
+import Data.Char
+isAlpha 'a'
+```
+
+> In a weakly typed language, the fact that a function now expects different
+data cannot be propagated to call sites. Unit testing may catch some of the
+mismatches, but testing is almost always a probabilistic rather than a
+deterministic process. Testing is a poor substitute for proof.

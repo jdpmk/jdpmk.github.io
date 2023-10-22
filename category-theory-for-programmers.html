@@ -64,7 +64,7 @@ highlight interesting quotes and ideas mentioned in each chapter.</p>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">-- Or, in point-free notation.</span></span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="ot">h ::</span> a <span class="ot">-&gt;</span> c</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>h <span class="ot">=</span> f <span class="op">.</span> g</span></code></pre></div>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>h <span class="ot">=</span> g <span class="op">.</span> f</span></code></pre></div>
         <p>In C++,</p>
         <div class="sourceCode" id="cb2"><pre
         class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Identity function.</span></span>
@@ -89,6 +89,94 @@ highlight interesting quotes and ideas mentioned in each chapter.</p>
         object in order to understand how to compose it with other
         objects, you’ve lost the advantages of your programming
         paradigm.</p>
+        </blockquote>
+        <h2 id="chapter-2">Chapter 2</h2>
+        <h3 id="types-and-functions">Types and Functions</h3>
+        <p>Types are finite or infinite sets of values. In Haskell,
+        types like <code>String</code> and <code>Integer</code> are
+        infinite sets, while <code>Char</code> and <code>Int</code>
+        (machine-type integer) are finite.</p>
+        <p>The category <span
+        class="math inline">\(\textbf{Set}\)</span> consists of objects
+        which are sets and morphisms which are functions. Unfortunately,
+        types in Haskell do not correspond directly to this notion of
+        sets, due to the possibility of non-terminating computations
+        (see the <a
+        href="https://en.wikipedia.org/wiki/Halting_problem">halting
+        problem</a>).</p>
+        <p>The category of Haskell types and functions is known as <span
+        class="math inline">\(\textbf{Hask}\)</span>. Each type is
+        extended by a special value, <span
+        class="math inline">\(\bot\)</span> (“bottom”), which denotes a
+        non-terminating computation.</p>
+        <p>In Haskell, <span class="math inline">\(\bot\)</span> is
+        denoted by <code>undefined</code>:</p>
+        <div class="sourceCode" id="cb3"><pre
+        class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">f ::</span> a <span class="ot">-&gt;</span> b</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>f x <span class="ot">=</span> <span class="fu">undefined</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- Since `undefined` is also a member of the type `a -&gt; b`</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ot">f ::</span> a <span class="ot">-&gt;</span> b</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>f <span class="ot">=</span> <span class="fu">undefined</span></span></code></pre></div>
+        <p>Some tools for reasoning about programs include operational
+        semantics and denotational semantics.</p>
+        <p>Operational semantics describes the execution of a program in
+        an “idealized interpreter”. To prove a useful property of the
+        program, you need to execute it.</p>
+        <p>On the other hand, denotational semantics assigns a
+        mathematical interpretation to each construct in the language.
+        We can assert useful properties of programs by proving
+        properties of its components.</p>
+        <p>There is also a notion of pure functions. Pure functions
+        produce the same value given the same output, no matter how many
+        times evaluated. They also must not produce any side effects,
+        unlike “dirty” functions.</p>
+        <p>Mathematical functions are pure. Haskell is a pure functional
+        programming language, so all functions in Haskell are also pure.
+        We use monads to model side effects (covered later). Basically
+        all useful programs perform some sort a side effect, so this is
+        crucial.</p>
+        <p>Now going back to types. Types are just sets. So you may have
+        a type with no elements. This is Haskell’s <code>Void</code>
+        type (not the same as C++ <code>void</code>!).</p>
+        <div class="sourceCode" id="cb4"><pre
+        class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Cannot be called, no values in type `Void`.</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ot">absurd ::</span> <span class="dt">Void</span> <span class="ot">-&gt;</span> a</span></code></pre></div>
+        <p>A type with one element is C++’s <code>void</code> type. In
+        Haskell, the type (and its corresponding singleton value) is
+        <code>()</code> (pronounced “unit”).</p>
+        <div class="sourceCode" id="cb5"><pre
+        class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ot">f44 ::</span> () <span class="ot">-&gt;</span> <span class="dt">Integer</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>f44 () <span class="ot">=</span> <span class="dv">44</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- Looks a lot like the equivalent call in C++! `f44();`</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>f44 ()</span></code></pre></div>
+        <p>We can also map every value in a given type to the value of
+        the singleton type, <code>()</code>. In Haskell, this function
+        is called <code>unit</code>, and is parametrically polymorphic -
+        it doesn’t dependent on the type passed in (and in this case
+        doesn’t depend on the value passed in either).</p>
+        <div class="sourceCode" id="cb6"><pre
+        class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ot">unit ::</span> a <span class="ot">-&gt;</span> ()</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>unit _ <span class="ot">-&gt;</span> ()</span></code></pre></div>
+        <p>Types of two element sets are booleans. In Haskell, this is
+        <code>Bool</code>, and is defined as follows. Functions to
+        <code>Bool</code> are known as predicates.</p>
+        <div class="sourceCode" id="cb7"><pre
+        class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Bool</span> <span class="ot">=</span> <span class="dt">True</span> <span class="op">|</span> <span class="dt">False</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- isAlpha is a predicate.</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- isAlpha :: Char -&gt; Bool</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co">-- This expression evaluates to `True`.</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">-- &#39;a&#39; is an alphabetical character.</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.Char</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="fu">isAlpha</span> <span class="ch">&#39;a&#39;</span></span></code></pre></div>
+        <blockquote>
+        <p>In a weakly typed language, the fact that a function now
+        expects different data cannot be propagated to call sites. Unit
+        testing may catch some of the mismatches, but testing is almost
+        always a probabilistic rather than a deterministic process.
+        Testing is a poor substitute for proof.</p>
         </blockquote>
         <footer class="footer">
       <p>© 2021-2023. Joydeep Mukherjee</p>
