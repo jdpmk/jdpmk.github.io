@@ -73,7 +73,8 @@ are finite.
 
 The category $\textbf{Set}$ consists of objects which are sets and morphisms
 which are functions. Unfortunately, types in Haskell do not correspond directly
-to this notion of sets, due to the possibility of non-terminating computations (see the [halting problem](https://en.wikipedia.org/wiki/Halting_problem)).
+to this notion of sets, due to the possibility of non-terminating computations
+(see the [halting problem](https://en.wikipedia.org/wiki/Halting_problem)).
 
 The category of Haskell types and functions is known as $\textbf{Hask}$. Each
 type is extended by a special value, $\bot$ ("bottom"), which denotes a
@@ -157,3 +158,51 @@ isAlpha 'a'
 data cannot be propagated to call sites. Unit testing may catch some of the
 mismatches, but testing is almost always a probabilistic rather than a
 deterministic process. Testing is a poor substitute for proof.
+
+## Chapter 3
+
+### Categories Great and Small
+
+A simple example is a trivial category with zero objects and zero morphisms.
+This is sort of like an empty set.
+
+Categories can be built from directed graphs. Nodes can be treated as objects.
+We need an identity arrow at each node, and an arrow where the end of an arrow
+coincides at an object from which another arrow begins. A category built from a
+graph like this is called a free category, an example of free construction.
+
+There are categories where the morphisms express a relation between objects.
+For example, ordering. The "less than or equal" relation is a category,
+satisfying:
+
+- the identity morphism, e.g. $a \leq a$
+- composition, e.g. $a \leq b, b \leq c \implies a \leq c$
+- associativity
+
+If we impose $a \leq b, b \leq a \implies a = b$, this is called a
+partial order. If we further impose a relation between any two objects, we get
+a total order.
+
+A preorder is a thin category, where there is at most one morphism from $a$ to
+$b$. $C(a, b)$ (or $\textbf{Hom}_{C}(a, b)$) is a hom-set, or the set of
+morphisms from $a$ to $b$. In a preorder this is either an empty or singleton
+set. Cycles may occur in a preorder but not in a partial order.
+
+A monoid is a set with a binary operation, which is associative and has a
+special unit element. An example is the natural numbers with zero over
+addition. In Haskell, a type class exists for it:
+
+```haskell
+class Monoid m where
+    mempty :: m
+    mappend :: m -> m -> m
+```
+
+A monoid is a single object category with a set of morphisms following rules
+for composition. We can always extract this set of morphisms from the single
+object category: the hom-set $\textbf{M}(m, m)$ for single object $m$ in
+category $\textbf{M}$. A binary operator in this set could be the composition
+of morphisms.
+
+Every categorical monoid (one-object category) defines a unique
+set-with-binary-operator monoid.

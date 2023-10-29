@@ -178,6 +178,58 @@ highlight interesting quotes and ideas mentioned in each chapter.</p>
         always a probabilistic rather than a deterministic process.
         Testing is a poor substitute for proof.</p>
         </blockquote>
+        <h2 id="chapter-3">Chapter 3</h2>
+        <h3 id="categories-great-and-small">Categories Great and
+        Small</h3>
+        <p>A simple example is a trivial category with zero objects and
+        zero morphisms. This is sort of like an empty set.</p>
+        <p>Categories can be built from directed graphs. Nodes can be
+        treated as objects. We need an identity arrow at each node, and
+        an arrow where the end of an arrow coincides at an object from
+        which another arrow begins. A category built from a graph like
+        this is called a free category, an example of free
+        construction.</p>
+        <p>There are categories where the morphisms express a relation
+        between objects. For example, ordering. The “less than or equal”
+        relation is a category, satisfying:</p>
+        <ul>
+        <li>the identity morphism, e.g. <span class="math inline">\(a
+        \leq a\)</span></li>
+        <li>composition, e.g. <span class="math inline">\(a \leq b, b
+        \leq c \implies a \leq c\)</span></li>
+        <li>associativity</li>
+        </ul>
+        <p>If we impose <span class="math inline">\(a \leq b, b \leq a
+        \implies a = b\)</span>, this is called a partial order. If we
+        further impose a relation between any two objects, we get a
+        total order.</p>
+        <p>A preorder is a thin category, where there is at most one
+        morphism from <span class="math inline">\(a\)</span> to <span
+        class="math inline">\(b\)</span>. <span
+        class="math inline">\(C(a, b)\)</span> (or <span
+        class="math inline">\(\textbf{Hom}_{C}(a, b)\)</span>) is a
+        hom-set, or the set of morphisms from <span
+        class="math inline">\(a\)</span> to <span
+        class="math inline">\(b\)</span>. In a preorder this is either
+        an empty or singleton set. Cycles may occur in a preorder but
+        not in a partial order.</p>
+        <p>A monoid is a set with a binary operation, which is
+        associative and has a special unit element. An example is the
+        natural numbers with zero over addition. In Haskell, a type
+        class exists for it:</p>
+        <div class="sourceCode" id="cb8"><pre
+        class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">Monoid</span> m <span class="kw">where</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    mempty ::</span> m</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ot">    mappend ::</span> m <span class="ot">-&gt;</span> m <span class="ot">-&gt;</span> m</span></code></pre></div>
+        <p>A monoid is a single object category with a set of morphisms
+        following rules for composition. We can always extract this set
+        of morphisms from the single object category: the hom-set <span
+        class="math inline">\(\textbf{M}(m, m)\)</span> for single
+        object <span class="math inline">\(m\)</span> in category <span
+        class="math inline">\(\textbf{M}\)</span>. A binary operator in
+        this set could be the composition of morphisms.</p>
+        <p>Every categorical monoid (one-object category) defines a
+        unique set-with-binary-operator monoid.</p>
         <footer class="footer">
       <p>© 2021-2023. Joydeep Mukherjee</p>
     </footer>
